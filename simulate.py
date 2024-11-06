@@ -2,98 +2,151 @@ import json
 import random
 from pathlib import Path
 from PIL import Image
-from game import Round, Feedback
-from agents import GPTListener
+from game import RepeatedReferenceGame, Trial
+from pydantic_core import from_json
+from agents import (
+    GPTListener,
+    GPTSpeaker,
+    CoGenListener,
+    PixtralSpeaker,
+    PixtralListener,
+)
 from tqdm import tqdm
+import yaml
+from collections import defaultdict
+from vllm import LLM
+from copy import deepcopy
 
 
-def simulate(rounds, speaker=None, listener=None, teacher_force=False, gameid=None):
-    simulated_rounds = list()
-    for i, round in enumerate(
-        tqdm(rounds, desc=f"Simulating {gameid}" if gameid else "Simulating")
+def simulate(
+    repeated_reference_game,
+    speaker=None,
+    listener=None,
+    teacher_force=False,
+    gameid=None,
+):
+    simulated_trials = list()
+    for i, trial in enumerate(
+        tqdm(
+            repeated_reference_game.trials,
+            desc=f"Simulating {gameid}" if gameid else "Simulating",
+        )
     ):
-        previous_rounds = rounds[:i] if teacher_force else simulated_rounds[:i]
+        previous_trials = (
+            deepcopy(repeated_reference_game.trials[:i])
+            if teacher_force
+            else deepcopy(simulated_trials)
+        )
+        trials = [
+            *previous_trials,
+            Trial(target=trial.target),
+        ]
 
         if not speaker is None:
-            message = speaker.generate(round.context, round.target, previous_rounds)
+            trials[-1].message = speaker.generate(
+                RepeatedReferenceGame(
+                    context=repeated_reference_game.context, trials=trials
+                )
+            )
         else:
-            message = round.message
+            trials[-1].message = trial.message
 
         if not listener is None:
-            selection = listener.select(round.context, message, previous_rounds)
+            trials[-1].selection = listener.select(
+                RepeatedReferenceGame(
+                    context=repeated_reference_game.context, trials=trials
+                )
+            )
         else:
-            selection = round.selection
+            trials[-1].selection = trials[-1].target
 
-        if selection == None:
-            feedback = Feedback.INVALID
-        elif selection == round.target:
-            feedback = Feedback.CORRECT
+        if trials[-1].selection is None:
+            trials[-1].correct = False
+        elif trials[-1].selection == trial.target:
+            trials[-1].correct = True
         else:
-            feedback = Feedback.INCORRECT
+            trials[-1].correct = False
 
-        simulated_rounds.append(
-            Round(round.context, round.target, message, selection, feedback)
-        )
+        simulated_trials.append(trials[-1])
 
-    return simulated_rounds
+    return RepeatedReferenceGame(
+        context=repeated_reference_game.context, trials=simulated_trials
+    )
 
 
-def load_games(games_path, images_path, shuffle_context=False):
+def load_games(games_path):
     with open(games_path, "r") as f:
         data = json.load(f)
 
     games = dict()
-    for gameid, rounds_data in data.items():
-        rounds = list()
-        context = [f"page-{chr(ord('A') + i)}.png" for i in range(12)]
-        random.shuffle(context)
-
-        for round_data in rounds_data:
-            if shuffle_context:
-                random.shuffle(context)
-            if (
-                round_data["role"] == "director"
-                and round_data["trialNum"] == len(rounds) + 1
-            ):
-                round = Round(
-                    [str(Path(images_path) / img) for img in context],
-                    context.index(round_data["intendedObj"]),
-                    round_data["contents"],
-                    context.index(round_data["clickedObj"]),
-                    Feedback.CORRECT if round_data["correct"] else Feedback.INCORRECT,
-                )
-                rounds.append(round)
-
-        games[gameid] = rounds
+    for gameid, rrg_data in data.items():
+        rrg = RepeatedReferenceGame.model_validate_json(json.dumps(rrg_data))
+        games[gameid] = rrg
 
     return games
 
 
-def main(
-    games_path,
-    images_path,
-    simulation_save_path,
-    api_call_log_file,
-    listener_images_once=True,
-    listener_history=True,
-    shuffle_context=False,
-    teacher_force=False,
-):
-    games = load_games(games_path, images_path, shuffle_context=shuffle_context)
-    listener = GPTListener(
-        "gpt-4o-mini-2024-07-18",
-        images_once=listener_images_once,
-        previous_rounds=listener_history,
-        response_save_path=api_call_log_file,
-    )
-    simulated_games = dict()
-    for gameid, game in games.items():
-        simulated_rounds = simulate(
-            game, listener=listener, teacher_force=teacher_force, gameid=gameid
-        )
-        simulated_games[gameid] = simulated_rounds
-        with open(simulation_save_path, "w") as f:
-            json.dump(simulated_games, f)
+def main(config_path, config_idx=None):
+    with open(config_path) as f:
+        configs = yaml.safe_load(f)
+
+    for i, config in enumerate(configs["experiment_configs"]):
+        if not config_idx is None and i != config_idx:
+            continue
+
+        games = load_games(config["games_path"])
+
+        if config["listener_type"] == "pixtral" and config["speaker_type"] == "pixtral":
+            llm = LLM(
+                model=config["listener_config"]["model"],
+                tokenizer_mode="mistral",
+                limit_mm_per_prompt={"image": 64},
+                max_model_len=15625,
+                tensor_parallel_size=config["listener_config"]["tensor_parallel_size"],
+            )
+            listener = PixtralListener(model=llm)
+            speaker = PixtralSpeaker(model=llm)
+        elif config["listener_type"] == "gpt":
+            listener = GPTListener(
+                **config["listener_config"], image_base_path=config["images_path"]
+            )
+        elif config["listener_type"] == "pixtral":
+            listener = PixtralListener(
+                **config["listener_config"], image_base_path=config["images_path"]
+            )
+        elif config["listener_type"] == "cogen":
+            listener = CoGenListener(
+                **config["listener_config"], image_base_path=config["images_path"]
+            )
+        elif config["listener_type"] == "oracle":
+            listener = None
+
+        if config["speaker_type"] == "replay":
+            speaker = None
+        elif config["speaker_type"] == "gpt":
+            speaker = GPTSpeaker(
+                **config["speaker_config"], image_base_path=config["images_path"]
+            )
+        elif (
+            config["speaker_type"] == "pixtral" and config["listener_type"] != "pixtral"
+        ):
+            speaker = PixtralSpeaker(**config["speaker_config"])
+
+        simulated_games = dict()
+        iterator = configs.get("selected_games", games.keys())
+        for gameid in tqdm(iterator, desc="Simulating games"):
+            game = games[gameid]
+            simulated_game = simulate(
+                game,
+                listener=listener,
+                speaker=speaker,
+                teacher_force=config.get("teacher_force", False),
+                gameid=gameid,
+            )
+
+            simulated_games[gameid] = simulated_game.model_dump(mode="json")
+            with open(config["simulation_save_path"], "w") as f:
+                json.dump(simulated_games, f)
 
 
 if __name__ == "__main__":
