@@ -1,0 +1,3 @@
+[submodule "cogen"]
+	path = cogen
+	url = https://github.com/lil-lab/cogen.git
