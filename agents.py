@@ -58,6 +58,7 @@ class ChatAPIListener:
         context: Tuple[str],
         show_images: bool = False,
         trial_number: int = None,
+        exclude_feedback: bool = False,
     ):
         if not trial.correct is None and trial.message is None:
             return list()
@@ -78,7 +79,7 @@ class ChatAPIListener:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/png;base64,{self.encode_image(image)}",
+                                "url": self.encode_image(image),
                             },
                         },
                     ]
@@ -116,41 +117,44 @@ class ChatAPIListener:
                     }
                 ]
 
-            if trial.correct is None:
-                feedback_prompt = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"Invalid answer. Answer must be one of {','.join([self.get_label(context, item) for item in enumerate(context)])}.",
-                            }
-                        ],
-                    }
-                ]
-            elif trial.correct:
-                feedback_prompt = [
-                    {
-                        "role": "user",
-                        "content": [{"type": "text", "text": "Correct."}],
-                    }
-                ]
+            if not exclude_feedback:
+                if trial.correct is None:
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": f"Invalid answer. Answer must be one of {','.join([self.get_label(context, item) for item in enumerate(context)])}.",
+                                }
+                            ],
+                        }
+                    ]
+                elif trial.correct:
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [{"type": "text", "text": "Correct."}],
+                        }
+                    ]
+                else:
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": (
+                                        f"Wrong, I'm referring to image {self.get_label(context, trial.target)}."
+                                        if self.feedback_label
+                                        else "Wrong."
+                                    ),
+                                }
+                            ],
+                        }
+                    ]
             else:
-                feedback_prompt = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": (
-                                    f"Wrong, I'm referring to image {self.get_label(context, trial.target)}."
-                                    if self.feedback_label
-                                    else "Wrong."
-                                ),
-                            }
-                        ],
-                    }
-                ]
+                feedback_prompt = []
         else:
             selection_prompt = []
             feedback_prompt = []
@@ -179,7 +183,9 @@ class ChatAPIListener:
 
         return context[selection_idx]
 
-    def select(self, repeated_reference_game):
+    def construct_prompt_messages(
+        self, repeated_reference_game, exclude_feedback_on_last=False, random_seed=None
+    ):
         intro = self.get_intro(repeated_reference_game.context)
         if self.context_presentation == "no_history":
             trial_messages = [
@@ -188,14 +194,15 @@ class ChatAPIListener:
                     repeated_reference_game.context,
                     show_images=True,
                     trial_number=None,
+                    exclude_feedback=True,
                 )
             ]
             messages = [
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-            response = self.api_call(messages)
-            return self.validate_response(response, repeated_reference_game.context)
+
+            return messages, repeated_reference_game.context
         elif self.context_presentation == "once":
             trial_messages = [
                 self.format_trial(
@@ -203,6 +210,11 @@ class ChatAPIListener:
                     repeated_reference_game.context,
                     show_images=i == 0,
                     trial_number=i + 1,
+                    exclude_feedback=(
+                        exclude_feedback_on_last
+                        if i == len(repeated_reference_game.trials) - 1
+                        else False
+                    ),
                 )
                 for i, trial in enumerate(repeated_reference_game.trials)
             ]
@@ -210,29 +222,38 @@ class ChatAPIListener:
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-            response = self.api_call(messages)
-            return self.validate_response(response, repeated_reference_game.context)
+            return messages, repeated_reference_game.context
         elif self.context_presentation == "trial_shuffle":
-            trial_context = random.sample(
-                repeated_reference_game.context,
-                len(repeated_reference_game.context),
-            )
-            trial_messages = [
-                self.format_trial(
-                    trial,
-                    trial_context,
-                    show_images=True,
-                    trial_number=i + 1,
+            if random_seed:
+                random.seed(random_seed)
+
+            trial_messages = []
+            for i, trial in enumerate(repeated_reference_game.trials):
+                trial_context = random.sample(
+                    repeated_reference_game.context,
+                    len(repeated_reference_game.context),
                 )
-                for i, trial in enumerate(repeated_reference_game.trials)
-            ]
+                trial_messages.append(
+                    self.format_trial(
+                        trial,
+                        trial_context,
+                        show_images=True,
+                        trial_number=i + 1,
+                        exclude_feedback=(
+                            exclude_feedback_on_last
+                            if i == len(repeated_reference_game.trials) - 1
+                            else False
+                        ),
+                    )
+                )
             messages = [
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-            response = self.api_call(messages)
-            return self.validate_response(response, trial_context)
+            return messages, trial_context
         elif self.context_presentation == "block_shuffle":
+            if random_seed:
+                random.seed(random_seed)
             if not repeated_reference_game.validate_block_structure():
                 raise ValueError("Game does not have correct block structure.")
 
@@ -255,6 +276,11 @@ class ChatAPIListener:
                         block_context,
                         show_images=trial_counter == block_start_counter,
                         trial_number=trial_counter + 1,
+                        exclude_feedback=(
+                            exclude_feedback_on_last
+                            if trial_counter == len(repeated_reference_game.trials) - 1
+                            else False
+                        ),
                     )
                     if len(messages) > 0:
                         block_trials.append(messages)
@@ -266,10 +292,26 @@ class ChatAPIListener:
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-            response = self.api_call(messages)
-            return self.validate_response(response, block_context)
+            return self.collapse_turns(messages), block_context
         else:
             raise ValueError("Invalid context presentation type.")
+
+    def collapse_turns(self, messages):
+        collapsed_messages = list()
+        for m in messages:
+            if (
+                len(collapsed_messages) > 0
+                and collapsed_messages[-1]["role"] == m["role"]
+            ):
+                collapsed_messages[-1]["content"] += m["content"]
+            else:
+                collapsed_messages.append(m)
+        return collapsed_messages
+
+    def select(self, repeated_reference_game):
+        messages, context = self.construct_prompt_messages(repeated_reference_game)
+        response = self.api_call(messages)
+        return self.validate_response(response, context)
 
 
 class ChatAPISpeaker:
@@ -411,7 +453,20 @@ class ChatAPISpeaker:
             *feedback_prompt,
         ]
 
-    def generate(self, repeated_reference_game):
+    def collapse_turns(self, messages):
+        collapsed_messages = list()
+        for m in messages:
+            if (
+                len(collapsed_messages) > 0
+                and collapsed_messages[-1]["role"] == m["role"]
+            ):
+                collapsed_messages[-1]["content"] += m["content"]
+            else:
+                collapsed_messages.append(m)
+
+        return collapsed_messages
+
+    def construct_prompt_messages(self, repeated_reference_game):
         intro = self.get_intro(repeated_reference_game.context)
         if self.context_presentation == "no_history":
             trials_messages = [
@@ -432,8 +487,10 @@ class ChatAPISpeaker:
                 ]
             )
         messages = [*intro, *trials_messages]
+        return messages
 
-        return self.api_call(messages)
+    def generate(self, repeated_reference_game):
+        return self.api_call(self.construct_prompt_messages(repeated_reference_game))
 
 
 class GPTAgent:
@@ -499,11 +556,11 @@ class GPTAgent:
 
     def encode_image(self, image_path):
         with open(Path(self.image_base_path) / image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
+            return f"data:image/png;base64,{base64.b64encode(image_file.read()).decode("utf-8")}"
 
 
 class PixtralAgent:
-    def __init__(self, model, tensor_parallel_size=1):
+    def __init__(self, model, tensor_parallel_size=1, image_base_path: str = ""):
         if isinstance(model, str):
             self.llm = LLM(
                 model=model,
@@ -515,7 +572,8 @@ class PixtralAgent:
         elif isinstance(model, LLM):
             self.llm = model
 
-        self.text_only_assistant = True
+        self.text_only_assistant = False
+        self.image_base_path = image_base_path
 
     def api_call(self, messages):
         outputs = self.llm.chat(
@@ -524,8 +582,9 @@ class PixtralAgent:
         return outputs[0].outputs[0].text.strip("\"'")
 
     def encode_image(self, image_path):
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
+        return str(Path(self.image_base_path) / image_path)
+        # with open(Path(self.image_base_path) / image_path, "rb") as image_file:
+        #     return base64.b64encode(image_file.read()).decode("utf-8")
 
 
 class GPTSpeaker(GPTAgent, ChatAPISpeaker):
@@ -593,7 +652,7 @@ class PixtralSpeaker(PixtralAgent, ChatAPISpeaker):
         generation_config=None,
         prompt_type="standard",
     ):
-        PixtralAgent.__init__(self, model, tensor_parallel_size)
+        PixtralAgent.__init__(self, model, tensor_parallel_size, image_base_path)
 
         self.context_presentation = context_presentation
         self.feedback_label = feedback_label
@@ -619,7 +678,7 @@ class PixtralListener(PixtralAgent, ChatAPIListener):
         generation_config=None,
         tensor_parallel_size=1,
     ):
-        PixtralAgent.__init__(self, model, tensor_parallel_size)
+        PixtralAgent.__init__(self, model, tensor_parallel_size, image_base_path)
 
         if generation_config is None:
             generation_config = {
