@@ -23,7 +23,7 @@ sys.path.append(os.path.abspath("./cogen"))
 from cogen.models.joint_inference import IdeficsJointInferenceModel
 
 
-class ChatAPIListener:
+class ChatListener:
     def get_label(self, context: Tuple[str], item: str):
         if item is None:
             return "Invalid"
@@ -259,6 +259,14 @@ class ChatAPIListener:
 
             trial_messages = list()
             trial_counter = 0
+            block_context = None
+
+            if len(repeated_reference_game.trials) == 0:
+                block_context = random.sample(
+                    repeated_reference_game.context,
+                    len(repeated_reference_game.context),
+                )
+
             for block_idx, block in enumerate(
                 batched(
                     repeated_reference_game.trials, len(repeated_reference_game.context)
@@ -292,6 +300,8 @@ class ChatAPIListener:
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
+
+            assert block_context is not None, "Block context should not be None."
             return self.collapse_turns(messages), block_context
         else:
             raise ValueError("Invalid context presentation type.")
@@ -314,7 +324,7 @@ class ChatAPIListener:
         return self.validate_response(response, context)
 
 
-class ChatAPISpeaker:
+class ChatSpeaker:
     def get_label(self, context: Tuple[str], item: str):
         if item is None:
             return "Invalid"
@@ -354,7 +364,7 @@ class ChatAPISpeaker:
                                 {
                                     "type": "image_url",
                                     "image_url": {
-                                        "url": f"data:image/png;base64,{self.encode_image(image)}",
+                                        "url": self.encode_image(image),
                                     },
                                 },
                             ]
@@ -487,7 +497,7 @@ class ChatAPISpeaker:
                 ]
             )
         messages = [*intro, *trials_messages]
-        return messages
+        return self.collapse_turns(messages)
 
     def generate(self, repeated_reference_game):
         return self.api_call(self.construct_prompt_messages(repeated_reference_game))
@@ -559,7 +569,7 @@ class GPTAgent:
             return f"data:image/png;base64,{base64.b64encode(image_file.read()).decode("utf-8")}"
 
 
-class PixtralAgent:
+class vLLMAgent:
     def __init__(self, model, tensor_parallel_size=1, image_base_path: str = ""):
         if isinstance(model, str):
             self.llm = LLM(
@@ -582,12 +592,11 @@ class PixtralAgent:
         return outputs[0].outputs[0].text.strip("\"'")
 
     def encode_image(self, image_path):
-        return str(Path(self.image_base_path) / image_path)
-        # with open(Path(self.image_base_path) / image_path, "rb") as image_file:
-        #     return base64.b64encode(image_file.read()).decode("utf-8")
+        with open(Path(self.image_base_path) / image_path, "rb") as image_file:
+            return f"data:image/png;base64,{base64.b64encode(image_file.read()).decode("utf-8")}"
 
 
-class GPTSpeaker(GPTAgent, ChatAPISpeaker):
+class GPTSpeaker(GPTAgent, ChatSpeaker):
     def __init__(
         self,
         model,
@@ -616,7 +625,7 @@ class GPTSpeaker(GPTAgent, ChatAPISpeaker):
         self.prompt_type = prompt_type
 
 
-class GPTListener(GPTAgent, ChatAPIListener):
+class GPTListener(GPTAgent, ChatListener):
     def __init__(
         self,
         model,
@@ -641,7 +650,7 @@ class GPTListener(GPTAgent, ChatAPIListener):
             self.generation_config.update(generation_config)
 
 
-class PixtralSpeaker(PixtralAgent, ChatAPISpeaker):
+class vLLMSpeaker(vLLMAgent, ChatSpeaker):
     def __init__(
         self,
         model,
@@ -652,7 +661,7 @@ class PixtralSpeaker(PixtralAgent, ChatAPISpeaker):
         generation_config=None,
         prompt_type="standard",
     ):
-        PixtralAgent.__init__(self, model, tensor_parallel_size, image_base_path)
+        vLLMAgent.__init__(self, model, tensor_parallel_size, image_base_path)
 
         self.context_presentation = context_presentation
         self.feedback_label = feedback_label
@@ -668,7 +677,7 @@ class PixtralSpeaker(PixtralAgent, ChatAPISpeaker):
         self.prompt_type = prompt_type
 
 
-class PixtralListener(PixtralAgent, ChatAPIListener):
+class vLLMListener(vLLMAgent, ChatListener):
     def __init__(
         self,
         model,
@@ -678,7 +687,7 @@ class PixtralListener(PixtralAgent, ChatAPIListener):
         generation_config=None,
         tensor_parallel_size=1,
     ):
-        PixtralAgent.__init__(self, model, tensor_parallel_size, image_base_path)
+        vLLMAgent.__init__(self, model, tensor_parallel_size, image_base_path)
 
         if generation_config is None:
             generation_config = {
@@ -690,6 +699,247 @@ class PixtralListener(PixtralAgent, ChatAPIListener):
         self.feedback_label = feedback_label
 
         self.generation_config = SamplingParams(**generation_config)
+
+
+class GenerateListener(ChatListener):
+    def __init__(
+        self,
+        model,
+        processor,
+        image_base_path: str = "",
+        context_presentation="block_shuffle",
+        feedback_label=False,
+    ):
+        self.model = model
+        self.processor = processor
+        self.image_base_path = image_base_path
+        self.context_presentation = context_presentation
+        self.feedback_label = feedback_label
+        self.text_only_assistant = False
+
+    def select(self, repeated_reference_game):
+        messages, context = self.construct_prompt_messages(
+            repeated_reference_game, random_seed=412
+        )
+        formatted_messages = self.processor.apply_chat_template(
+            messages, add_generation_prompt=True
+        )
+        processed = self.processor(
+            text=formatted_messages,
+            images=list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            Image.open(chunk["image_url"]["url"]).convert("RGB")
+                            for chunk in m["content"]
+                            if chunk["type"] == "image_url"
+                        ]
+                        for m in messages
+                    ]
+                )
+            ),
+            return_tensors="pt",
+        )
+
+        outputs = self.model.generate(
+            **processed.to(self.model.device, self.model.dtype),
+            max_new_tokens=8,
+            do_sample=False,
+        )
+
+        response = self.processor.batch_decode(
+            outputs[:, processed.input_ids.shape[1] :]
+        )[0].strip()
+
+        return self.validate_response(response, context)
+
+    def encode_image(self, image_path):
+        return str(Path(self.image_base_path) / image_path)
+
+
+class GenerateSpeaker(ChatSpeaker):
+    def __init__(
+        self,
+        model,
+        processor,
+        image_base_path: str = "",
+        context_presentation="once",
+        feedback_label=False,
+        generation_config=None,
+        prompt_type="standard",
+    ):
+        self.model = model
+        self.processor = processor
+        self.image_base_path = image_base_path
+        self.context_presentation = context_presentation
+        self.feedback_label = feedback_label
+        self.prompt_type = prompt_type
+
+        self.generation_config = {
+            "max_new_tokens": 64,
+            "temperature": 0.3,
+            "do_sample": True,
+            "top_p": 0.9,
+            "stop_strings": ["\n"],
+        }
+
+        if generation_config is not None:
+            self.generation_config.update(generation_config)
+
+        self.text_only_assistant = False
+
+    def generate(self, repeated_reference_game):
+        messages = self.construct_prompt_messages(repeated_reference_game)
+        formatted_messages = self.processor.apply_chat_template(
+            messages, add_generation_prompt=True
+        )
+        processed = self.processor(
+            text=formatted_messages,
+            images=list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            Image.open(chunk["image_url"]["url"]).convert("RGB")
+                            for chunk in m["content"]
+                            if chunk["type"] == "image_url"
+                        ]
+                        for m in messages
+                    ]
+                )
+            ),
+            return_tensors="pt",
+        )
+        outputs = self.model.generate(
+            **processed.to(self.model.device, self.model.dtype),
+            **self.generation_config,
+            tokenizer=self.processor.tokenizer,
+        )
+
+        response = self.processor.batch_decode(
+            outputs[:, processed.input_ids.shape[1] :], skip_special_tokens=True
+        )[0].strip(" \n\t\"'")
+
+        return response
+
+    def encode_image(self, image_path):
+        return str(Path(self.image_base_path) / image_path)
+
+
+class ScoringListener(ChatListener):
+    def __init__(
+        self,
+        model,
+        processor,
+        image_base_path: str = "",
+        context_presentation="block_shuffle",
+        feedback_label=False,
+    ):
+        self.model = model
+        self.processor = processor
+        self.image_base_path = image_base_path
+        self.context_presentation = context_presentation
+        self.feedback_label = feedback_label
+        self.text_only_assistant = False
+
+    @torch.no_grad()
+    def score(self, repeated_reference_game):
+        counterfactual_games = [
+            RepeatedReferenceGame(
+                context=repeated_reference_game.context,
+                trials=[
+                    *repeated_reference_game.trials[:-1],
+                    Trial(
+                        target=repeated_reference_game.trials[-1].target,
+                        message=repeated_reference_game.trials[-1].message,
+                        selection=c,
+                        correct=c == repeated_reference_game.trials[-1].target,
+                    ),
+                ],
+            )
+            for c in repeated_reference_game.context
+        ]
+
+        counterfactual_prompt_messages, counterfactual_prompt_contexts = zip(
+            *[
+                self.construct_prompt_messages(
+                    cg, exclude_feedback_on_last=True, random_seed=412
+                )
+                for cg in counterfactual_games
+            ]
+        )
+
+        assert all(
+            [
+                counterfactual_prompt_contexts[0] == ctx
+                for ctx in counterfactual_prompt_contexts[1:]
+            ]
+        ), "Contexts for counterfactual games should be the same."
+
+        formatted_counterfactual_prompt_messages = [
+            self.processor.apply_chat_template(cfpm)
+            for cfpm in counterfactual_prompt_messages
+        ]
+
+        processed_all = self.processor(
+            text=formatted_counterfactual_prompt_messages,
+            images=[
+                list(
+                    itertools.chain.from_iterable(
+                        [
+                            [
+                                Image.open(chunk["image_url"]["url"]).convert("RGB")
+                                for chunk in m["content"]
+                                if chunk["type"] == "image_url"
+                            ]
+                            for m in cfpm
+                        ]
+                    )
+                )
+                for cfpm in counterfactual_prompt_messages
+            ],
+        )
+
+        scores = dict()
+        processed_inputs = self.processor(
+            text=[formatted_counterfactual_prompt_messages[0]],
+            images=[
+                list(
+                    itertools.chain.from_iterable(
+                        [
+                            [
+                                Image.open(chunk["image_url"]["url"]).convert("RGB")
+                                for chunk in m["content"]
+                                if chunk["type"] == "image_url"
+                            ]
+                            for m in counterfactual_prompt_messages[0]
+                        ]
+                    )
+                )
+            ],
+        )
+
+        outputs = self.model(
+            **processed_inputs.to(self.model.device, self.model.dtype),
+            use_cache=False,
+        )
+
+        probs = torch.nn.functional.softmax(
+            outputs.logits[:, -2, processed_all.input_ids[:, -2]], dim=-1
+        ).tolist()
+
+        return {
+            r: p
+            for r, p in zip(
+                [g.trials[-1].selection for g in counterfactual_games], probs
+            )
+        }
+
+    def select(self, repeated_reference_game):
+        probs = self.score(repeated_reference_game)
+        return max(probs.items(), key=lambda x: x[1])[0]
+
+    def encode_image(self, image_path):
+        return str(Path(self.image_base_path) / image_path)
 
 
 class CoGenListener:
@@ -1501,6 +1751,32 @@ class CoGenListener:
 
 
 if __name__ == "__main__":
-    listener = CoGenListener(
-        "cogen/data_and_checkpoints/experiments/joint_training/r3_full/run/checkpoints/acc"
+    from transformers import AutoProcessor, AutoModelForVision2Seq
+    import json
+    import torch
+
+    processor = AutoProcessor.from_pretrained("saujasv/pixtral-12b")
+    model = AutoModelForVision2Seq.from_pretrained(
+        "saujasv/pixtral-12b", trust_remote_code=True
+    ).to("cuda", dtype=torch.float16)
+    listener = GenerateListener(model, processor, image_base_path="square-black-imgs")
+
+    with open("lexgram/exp1_data-icca-no_control.json") as f:
+        games = list()
+        for gameid, game in json.load(f).items():
+            games.append(RepeatedReferenceGame.model_validate_json(json.dumps(game)))
+
+    print(
+        listener.select(
+            RepeatedReferenceGame(
+                context=games[0].context,
+                trials=[
+                    *games[0].trials[:-1],
+                    Trial(
+                        message=games[0].trials[-1].message,
+                        target=games[0].trials[-1].target,
+                    ),
+                ],
+            )
+        )
     )
