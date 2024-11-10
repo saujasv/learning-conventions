@@ -14,6 +14,7 @@ from agents import (
     GenerateListener,
     GenerateSpeaker,
 )
+from cogen_agents import CoGenListener
 from tqdm import tqdm
 import yaml
 from collections import defaultdict
