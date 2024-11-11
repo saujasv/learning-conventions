@@ -370,7 +370,7 @@ class ChatSpeaker:
             },
         ]
 
-    def format_trial(self, context, trial, trial_number=None):
+    def format_trial(self, context, trial, trial_number=None, exclude_feedback=False):
         if trial_number is not None:
             trial_prompt = [{"type": "text", "text": f"Round {trial_number}, "}]
         else:
@@ -402,46 +402,49 @@ class ChatSpeaker:
                     }
                 ]
 
-            if trial.selection is None:
-                feedback_prompt = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"The listener didn't give a valid answer.",
-                            }
-                        ],
-                    }
-                ]
-            elif trial.correct:
-                feedback_prompt = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": f"The listener correctly answered Image {self.get_label(context, trial.selection)}.",
-                            }
-                        ],
-                    }
-                ]
+            if not exclude_feedback:
+                if trial.selection is None:
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": f"The listener didn't give a valid answer.",
+                                }
+                            ],
+                        }
+                    ]
+                elif trial.correct:
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": f"The listener correctly answered Image {self.get_label(context, trial.selection)}.",
+                                }
+                            ],
+                        }
+                    ]
+                else:
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": (
+                                        f"The listener mistakenly answered Image {self.get_label(context, trial.selection)}."
+                                        if self.feedback_label
+                                        else "The listener answered incorrectly."
+                                    ),
+                                }
+                            ],
+                        }
+                    ]
             else:
-                feedback_prompt = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": (
-                                    f"The listener mistakenly answered Image {self.get_label(context, trial.selection)}."
-                                    if self.feedback_label
-                                    else "The listener answered incorrectly."
-                                ),
-                            }
-                        ],
-                    }
-                ]
+                feedback_prompt = []
         else:
             message_prompt = []
             feedback_prompt = []
@@ -471,7 +474,9 @@ class ChatSpeaker:
 
         return collapsed_messages
 
-    def construct_prompt_messages(self, repeated_reference_game):
+    def construct_prompt_messages(
+        self, repeated_reference_game, exclude_feedback_on_last=False
+    ):
         intro = self.get_intro(repeated_reference_game.context)
         if self.context_presentation == "no_history":
             trials_messages = [
@@ -479,6 +484,7 @@ class ChatSpeaker:
                     repeated_reference_game.context,
                     repeated_reference_game.trials[-1],
                     trial_number=None,
+                    exclude_feedback=True,
                 )
             ]
 
@@ -486,7 +492,14 @@ class ChatSpeaker:
             trials_messages = itertools.chain.from_iterable(
                 [
                     self.format_trial(
-                        repeated_reference_game.context, trial, trial_number=i + 1
+                        repeated_reference_game.context,
+                        trial,
+                        trial_number=i + 1,
+                        exclude_feedback=(
+                            exclude_feedback_on_last
+                            if i == len(repeated_reference_game.trials) - 1
+                            else False
+                        ),
                     )
                     for i, trial in enumerate(repeated_reference_game.trials)
                 ]
@@ -944,6 +957,91 @@ class ScoringListener(ChatListener):
     def select(self, repeated_reference_game):
         probs = self.score(repeated_reference_game)
         return max(probs.items(), key=lambda x: x[1])[0]
+
+    def encode_image(self, image_path):
+        return str(Path(self.image_base_path) / image_path)
+
+
+class ScoringSpeaker(ChatSpeaker):
+    def __init__(
+        self,
+        model,
+        processor,
+        image_base_path: str = "",
+        context_presentation="once",
+        feedback_label=False,
+        prompt_type="standard",
+    ):
+        self.model = model
+        self.processor = processor
+        self.image_base_path = image_base_path
+        self.context_presentation = context_presentation
+        self.feedback_label = feedback_label
+        self.prompt_type = prompt_type
+
+        self.text_only_assistant = False
+
+    @torch.no_grad()
+    def score(self, repeated_reference_game):
+        messages = self.construct_prompt_messages(
+            repeated_reference_game, exclude_feedback_on_last=True
+        )
+
+        context = messages[:-1]
+        formatted_context = self.processor.apply_chat_template(context)
+        processed_context = self.processor(
+            text=formatted_context,
+            images=list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            Image.open(chunk["image_url"]["url"]).convert("RGB")
+                            for chunk in m["content"]
+                            if chunk["type"] == "image_url"
+                        ]
+                        for m in messages
+                    ]
+                )
+            ),
+            return_tensors="pt",
+        )
+
+        formatted_messages = self.processor.apply_chat_template(messages)
+        processed = self.processor(
+            text=formatted_messages,
+            images=list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            Image.open(chunk["image_url"]["url"]).convert("RGB")
+                            for chunk in m["content"]
+                            if chunk["type"] == "image_url"
+                        ]
+                        for m in messages
+                    ]
+                )
+            ),
+            return_tensors="pt",
+        )
+
+        labels = processed.input_ids.clone()
+        labels[:, : processed_context.input_ids.shape[1]] = -100
+
+        outputs = self.model(
+            **processed.to(self.model.device, self.model.dtype),
+            labels=labels,
+            use_cache=False,
+        )
+
+        log_p = -outputs.loss.item() * (
+            processed.input_ids.shape[1] - processed_context.input_ids.shape[1]
+        )
+        return log_p
+
+    def generate(self, repeated_reference_game):
+        raise NotImplementedError(
+            "ScoringSpeaker can only be used for scoring sequences as a speaker agent"
+        )
 
     def encode_image(self, image_path):
         return str(Path(self.image_base_path) / image_path)
