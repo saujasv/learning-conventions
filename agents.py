@@ -911,13 +911,13 @@ class ScoringListener(ChatListener):
         # get identify the longest prefix that's common to the different perturbed prompts
         # since we changed only the options, the token after this prefix scores the options
         # identify the longest prefix by counting down from the end
-        for i in range(processed.input_ids.shape[1], -1, -1):
-            if (processed.input_ids[:, :i] == processed.input_ids[0, :i]).all():
+        for i in range(processed_all.input_ids.shape[1], -1, -1):
+            if (processed_all.input_ids[:, :i] == processed_all.input_ids[0, :i]).all():
                 break
 
         option_token_idx = i
         # get the token that scores the options
-        option_tokens = processed.input_ids[:, option_token_idx]
+        option_tokens = processed_all.input_ids[:, option_token_idx]
 
         scores = dict()
         processed_inputs = self.processor(
@@ -943,9 +943,9 @@ class ScoringListener(ChatListener):
             use_cache=False,
         )
 
-        probs = torch.nn.functional.softmax(
+        probs = torch.nn.functional.log_softmax(
             outputs.logits[:, option_token_idx - 1, option_tokens], dim=-1
-        ).tolist()
+        )[0].tolist()
 
         return {
             r: p
@@ -1045,3 +1045,106 @@ class ScoringSpeaker(ChatSpeaker):
 
     def encode_image(self, image_path):
         return str(Path(self.image_base_path) / image_path)
+
+
+class JointInferenceListener(ChatListener):
+    def __init__(
+        self,
+        listener_model,
+        listener_processor,
+        speaker_model,
+        speaker_processor,
+        listener_lambda=0.5,
+        image_base_path: str = "",
+        listener_context_presentation="block_shuffle",
+        speaker_context_presentation="once",
+        listener_feedback_label=False,
+        speaker_feedback_label=False,
+        speaker_prompt_type="standard",
+    ):
+        self.listener = ScoringListener(
+            listener_model,
+            listener_processor,
+            image_base_path,
+            listener_context_presentation,
+            listener_feedback_label,
+        )
+        self.speaker = ScoringSpeaker(
+            speaker_model,
+            speaker_processor,
+            image_base_path,
+            speaker_context_presentation,
+            speaker_feedback_label,
+            speaker_prompt_type,
+        )
+
+        self.listener_lambda = listener_lambda
+
+    def score(self, repeated_reference_game):
+        listener_outputs = self.listener.score(repeated_reference_game)
+        speaker_outputs = {
+            referent: self.speaker.score(
+                RepeatedReferenceGame(
+                    context=repeated_reference_game.context,
+                    trials=[
+                        *repeated_reference_game.trials[:-1],
+                        Trial(
+                            target=referent,
+                            message=repeated_reference_game.trials[-1].message,
+                            selection=referent,
+                            correct=True,
+                        ),
+                    ],
+                )
+            )
+            for referent in repeated_reference_game.context
+        }
+
+        speaker_logprobs = torch.tensor(
+            [speaker_outputs[r] for r in repeated_reference_game.context]
+        )
+        listener_logprobs = torch.tensor(
+            [listener_outputs[r] for r in repeated_reference_game.context]
+        )
+
+        joint_logprobs_unnormalized = (
+            listener_logprobs * self.listener_lambda
+            + (1 - self.listener_lambda) * speaker_logprobs
+        )
+
+        joint_logprobs = (
+            joint_logprobs_unnormalized - joint_logprobs_unnormalized.logsumexp(dim=-1)
+        )
+
+        return {
+            r: p.item() for r, p in zip(repeated_reference_game.context, joint_logprobs)
+        }
+
+    def select(self, repeated_reference_game):
+        logprobs = self.score(repeated_reference_game)
+        return max(logprobs.items(), key=lambda x: x[1])[0]
+
+    def encode_image(self, image_path):
+        return str(Path(self.image_base_path) / image_path)
+
+
+if __name__ == "__main__":
+    from transformers import AutoProcessor, AutoModelForVision2Seq
+    from tqdm import tqdm
+
+    model = AutoModelForVision2Seq.from_pretrained(
+        "saujasv/pixtral-12b", torch_dtype=torch.float16
+    ).to("cuda")
+    processor = AutoProcessor.from_pretrained("saujasv/pixtral-12b")
+
+    listener = JointInferenceListener(
+        model, processor, model, processor, image_base_path="square-black-imgs/"
+    )
+
+    with open("lexgram/exp1_data-icca-no_control.json") as f:
+        games = list()
+        for gameid, game in json.load(f).items():
+            games.append(RepeatedReferenceGame.model_validate_json(json.dumps(game)))
+
+    for i in tqdm(range(10)):
+        print(listener.select(games[i]))
