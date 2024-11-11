@@ -801,6 +801,7 @@ class GenerateSpeaker(ChatSpeaker):
         formatted_messages = self.processor.apply_chat_template(
             messages, add_generation_prompt=True
         )
+
         processed = self.processor(
             text=formatted_messages,
             images=list(
@@ -817,6 +818,7 @@ class GenerateSpeaker(ChatSpeaker):
             ),
             return_tensors="pt",
         )
+
         outputs = self.model.generate(
             **processed.to(self.model.device, self.model.dtype),
             **self.generation_config,
@@ -1128,23 +1130,105 @@ class JointInferenceListener(ChatListener):
         return str(Path(self.image_base_path) / image_path)
 
 
-if __name__ == "__main__":
-    from transformers import AutoProcessor, AutoModelForVision2Seq
-    from tqdm import tqdm
+class JointInferenceSpeaker(ChatSpeaker):
+    def __init__(
+        self,
+        speaker_model,
+        speaker_processor,
+        listener_model,
+        listener_processor,
+        image_base_path: str = "",
+        speaker_lambda=0.5,
+        num_speaker_samples=5,
+        listener_context_presentation="block_shuffle",
+        speaker_context_presentation="once",
+        listener_feedback_label=False,
+        speaker_feedback_label=False,
+        speaker_prompt_type="standard",
+        speaker_generation_config=None,
+    ):
+        self.listener = ScoringListener(
+            listener_model,
+            listener_processor,
+            image_base_path,
+            listener_context_presentation,
+            listener_feedback_label,
+        )
+        self.generate_speaker = GenerateSpeaker(
+            speaker_model,
+            speaker_processor,
+            image_base_path,
+            speaker_context_presentation,
+            speaker_feedback_label,
+            speaker_generation_config,
+            speaker_prompt_type,
+        )
+        self.scoring_speaker = ScoringSpeaker(
+            speaker_model,
+            speaker_processor,
+            image_base_path,
+            speaker_context_presentation,
+            speaker_feedback_label,
+            speaker_prompt_type,
+        )
 
-    model = AutoModelForVision2Seq.from_pretrained(
-        "saujasv/pixtral-12b", torch_dtype=torch.float16
-    ).to("cuda")
-    processor = AutoProcessor.from_pretrained("saujasv/pixtral-12b")
+        self.num_speaker_samples = num_speaker_samples
+        self.speaker_lambda = speaker_lambda
 
-    listener = JointInferenceListener(
-        model, processor, model, processor, image_base_path="square-black-imgs/"
-    )
+    def generate(self, repeated_reference_game):
+        speaker_samples = list(
+            set(
+                self.generate_speaker.generate(repeated_reference_game)
+                for _ in range(self.num_speaker_samples)
+            )
+        )
+        speaker_logprobs = torch.tensor(
+            [
+                self.scoring_speaker.score(
+                    RepeatedReferenceGame(
+                        context=repeated_reference_game.context,
+                        trials=[
+                            *repeated_reference_game.trials[:-1],
+                            Trial(
+                                target=repeated_reference_game.trials[-1].target,
+                                message=s,
+                                selection=repeated_reference_game.trials[-1].target,
+                                correct=True,
+                            ),
+                        ],
+                    )
+                )
+                for s in speaker_samples
+            ]
+        )
 
-    with open("lexgram/exp1_data-icca-no_control.json") as f:
-        games = list()
-        for gameid, game in json.load(f).items():
-            games.append(RepeatedReferenceGame.model_validate_json(json.dumps(game)))
+        listener_logprobs = torch.tensor(
+            [
+                self.listener.score(
+                    RepeatedReferenceGame(
+                        context=repeated_reference_game.context,
+                        trials=[
+                            *repeated_reference_game.trials[:-1],
+                            Trial(
+                                target=repeated_reference_game.trials[-1].target,
+                                message=s,
+                                selection=repeated_reference_game.trials[-1].target,
+                                correct=True,
+                            ),
+                        ],
+                    )
+                )[repeated_reference_game.trials[-1].target]
+                for s in speaker_samples
+            ]
+        )
 
-    for i in tqdm(range(10)):
-        print(listener.select(games[i]))
+        joint_logprobs_unnormalized = (
+            listener_logprobs * self.speaker_lambda
+            + (1 - self.speaker_lambda) * speaker_logprobs
+        )
+
+        joint_logprobs = (
+            joint_logprobs_unnormalized - joint_logprobs_unnormalized.logsumexp(dim=-1)
+        )
+
+        return speaker_samples[joint_logprobs.argmax().item()]
