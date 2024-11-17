@@ -2,6 +2,9 @@ import torch
 from peft import LoraConfig, get_peft_model
 from PIL import Image
 
+import sys
+import os
+
 sys.path.append(os.path.abspath("./cogen"))
 from cogen.models.joint_inference import IdeficsJointInferenceModel
 from transformers import Idefics2ForConditionalGeneration, AutoProcessor

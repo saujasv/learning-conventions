@@ -16,6 +16,7 @@ from copy import deepcopy
 from pathlib import Path
 from game import RepeatedReferenceGame, Trial
 from itertools import batched
+import random
 
 
 class ChatListener:
@@ -197,27 +198,33 @@ class ChatListener:
                 *itertools.chain.from_iterable(trial_messages),
             ]
 
-            return messages, repeated_reference_game.context
+            return self.collapse_turns(messages), repeated_reference_game.context
         elif self.context_presentation == "once":
-            trial_messages = [
-                self.format_trial(
-                    trial,
-                    repeated_reference_game.context,
-                    show_images=i == 0,
-                    trial_number=i + 1,
-                    exclude_feedback=(
-                        exclude_feedback_on_last
-                        if i == len(repeated_reference_game.trials) - 1
-                        else False
-                    ),
+            trial_messages = list()
+            show_images = True
+            for i, trial in enumerate(repeated_reference_game.trials):
+                if trial.message is None:
+                    continue
+
+                trial_messages.append(
+                    self.format_trial(
+                        trial,
+                        repeated_reference_game.context,
+                        show_images=show_images,
+                        trial_number=i + 1,
+                        exclude_feedback=(
+                            exclude_feedback_on_last
+                            if i == len(repeated_reference_game.trials) - 1
+                            else False
+                        ),
+                    )
                 )
-                for i, trial in enumerate(repeated_reference_game.trials)
-            ]
+                show_images = False
             messages = [
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-            return messages, repeated_reference_game.context
+            return self.collapse_turns(messages), repeated_reference_game.context
         elif self.context_presentation == "trial_shuffle":
             if random_seed:
                 random.seed(random_seed)
@@ -245,7 +252,7 @@ class ChatListener:
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-            return messages, trial_context
+            return self.collapse_turns(messages), trial_context
         elif self.context_presentation == "block_shuffle":
             if random_seed:
                 random.seed(random_seed)
@@ -311,9 +318,12 @@ class ChatListener:
                 collapsed_messages[-1]["content"] += m["content"]
             else:
                 collapsed_messages.append(m)
+
         return collapsed_messages
 
     def select(self, repeated_reference_game):
+        if repeated_reference_game.trials[-1].message is None:
+            return random.choice(repeated_reference_game.context)
         messages, context = self.construct_prompt_messages(repeated_reference_game)
         response = self.api_call(messages)
         return self.validate_response(response, context)
@@ -726,6 +736,9 @@ class GenerateListener(ChatListener):
         self.text_only_assistant = False
 
     def select(self, repeated_reference_game):
+        if repeated_reference_game.trials[-1].message is None:
+            return random.choice(repeated_reference_game.context)
+
         messages, context = self.construct_prompt_messages(
             repeated_reference_game, random_seed=412
         )
@@ -913,7 +926,7 @@ class ScoringListener(ChatListener):
         # get identify the longest prefix that's common to the different perturbed prompts
         # since we changed only the options, the token after this prefix scores the options
         # identify the longest prefix by counting down from the end
-        for i in range(processed_all.input_ids.shape[1], -1, -1):
+        for i in range(processed_all.input_ids.shape[1] - 1, -1, -1):
             if (processed_all.input_ids[:, :i] == processed_all.input_ids[0, :i]).all():
                 break
 
@@ -957,6 +970,8 @@ class ScoringListener(ChatListener):
         }
 
     def select(self, repeated_reference_game):
+        if repeated_reference_game.trials[-1].message is None:
+            return random.choice(repeated_reference_game.context)
         probs = self.score(repeated_reference_game)
         return max(probs.items(), key=lambda x: x[1])[0]
 
@@ -1123,6 +1138,8 @@ class JointInferenceListener(ChatListener):
         }
 
     def select(self, repeated_reference_game):
+        if repeated_reference_game.trials[-1].message is None:
+            return random.choice(repeated_reference_game.context)
         logprobs = self.score(repeated_reference_game)
         return max(logprobs.items(), key=lambda x: x[1])[0]
 

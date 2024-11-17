@@ -7,12 +7,13 @@ from pydantic_core import from_json
 from agents import (
     GPTListener,
     GPTSpeaker,
-    CoGenListener,
     vLLMListener,
     vLLMSpeaker,
     ScoringListener,
     GenerateListener,
     GenerateSpeaker,
+    JointInferenceListener,
+    JointInferenceSpeaker,
 )
 from cogen_agents import CoGenListener
 from tqdm import tqdm
@@ -57,13 +58,15 @@ def simulate(
         else:
             trials[-1].message = trial.message
 
-        if not listener is None:
+        if not isinstance(listener, str):
             trials[-1].selection = listener.select(
                 RepeatedReferenceGame(
                     context=repeated_reference_game.context, trials=trials
                 )
             )
-        else:
+        elif listener == "replay":
+            trials[-1].selection = repeated_reference_game.trials[i].selection
+        elif listener == "oracle":
             trials[-1].selection = trials[-1].target
 
         if trials[-1].selection is None:
@@ -100,6 +103,8 @@ def main(config_path, config_idx=None):
         if not config_idx is None and i != config_idx:
             continue
 
+        print(config)
+
         games = load_games(config["games_path"])
 
         if config.get("model_name_or_path", None):
@@ -125,6 +130,15 @@ def main(config_path, config_idx=None):
                 **config["listener_config"],
                 image_base_path=config["images_path"],
             )
+        elif config["listener_type"] == "joint_inference":
+            listener = JointInferenceListener(
+                model,
+                processor,
+                model,
+                processor,
+                **config["listener_config"],
+                image_base_path=config["images_path"],
+            )
         elif config["listener_type"] == "gpt":
             listener = GPTListener(
                 **config["listener_config"], image_base_path=config["images_path"]
@@ -133,8 +147,10 @@ def main(config_path, config_idx=None):
             listener = CoGenListener(
                 **config["listener_config"], image_base_path=config["images_path"]
             )
+        elif config["listener_type"] == "replay":
+            listener = "replay"
         elif config["listener_type"] == "oracle":
-            listener = None
+            listener = "oracle"
 
         if config["speaker_type"] == "replay":
             speaker = None
@@ -144,6 +160,15 @@ def main(config_path, config_idx=None):
             )
         elif config["speaker_type"] == "generate":
             speaker = GenerateSpeaker(
+                model,
+                processor,
+                **config["speaker_config"],
+                image_base_path=config["images_path"],
+            )
+        elif config["speaker_type"] == "joint_inference":
+            speaker = JointInferenceSpeaker(
+                model,
+                processor,
                 model,
                 processor,
                 **config["speaker_config"],
