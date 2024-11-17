@@ -1,0 +1,511 @@
+experiment_configs:
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    listener_type: replay
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=human.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control-splice=1.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=splice_1-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control-splice=2.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=splice_2-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control-splice=3.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=splice_3-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: generate
+    speaker_config:
+      prompt_type: standard
+    simulation_save_path: pixtral_results/speaker=generate_standard-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: generate
+    speaker_config:
+      prompt_type: explicit
+    simulation_save_path: pixtral_results/speaker=generate_explicit-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: true
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=generate-context=block_shuffle-feedback_label=true.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: once
+      feedback_label: false
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=generate-context=once.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: once
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-context=once.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+      speaker_prompt_type: explicit
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-context=block_shuffle-prompt_type=explicit.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: once
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_once-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: generate
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      speaker_prompt_type: explicit
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_explicit-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: scoring
+    listener_config:
+      context_presentation: block_shuffle
+      feedback_label: false
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=scoring-listener=generate-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: scoring
+    listener_config:
+      context_presentation: once
+      feedback_label: false
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=scoring-listener=generate-context=once.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control-splice=1.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+      speaker_prompt_type: standard
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=splice_1-listener=joint_inference-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control-splice=2.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+      speaker_prompt_type: standard
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=splice_2-listener=joint_inference-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control-splice=3.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+      speaker_prompt_type: standard
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=splice_3-listener=joint_inference-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.0
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.0-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.1
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.1-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.2
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.2-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.3
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.3-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.4
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.4-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.5-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.6
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.6-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.7
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.7-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.8
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.8-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.9
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=0.9-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 1.0
+      listener_context_presentation: block_shuffle
+    speaker_type: replay
+    simulation_save_path: pixtral_results/speaker=human-listener=joint_inference-lambda=1.0-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.0
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-num_speaker_samples=25-listener=joint_inference-lambda=0.0-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.2
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-num_speaker_samples=25-listener=joint_inference-lambda=0.2-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.4
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-num_speaker_samples=25-listener=joint_inference-lambda=0.4-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.6
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-num_speaker_samples=25-listener=joint_inference-lambda=0.6-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.8
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-num_speaker_samples=25-listener=joint_inference-lambda=0.8-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 1.0
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.7
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-num_speaker_samples=25-listener=joint_inference-lambda=1.0-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.3
+        top_p: 0.9
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-temperature=0.3-num_speaker_samples=25-listener=joint_inference-lambda=0.5-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.5
+        top_p: 0.9
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-temperature=0.5-num_speaker_samples=25-listener=joint_inference-lambda=0.5-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.7
+        top_p: 0.9
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-temperature=0.7-num_speaker_samples=25-listener=joint_inference-lambda=0.5-context=block_shuffle.json
+  -
+    games_path: lexgram/exp1_data-icca-no_control.json
+    images_path: square-black-imgs
+    model_name_or_path: saujasv/pixtral-12b
+    listener_type: joint_inference
+    listener_config:
+      listener_lambda: 0.5
+      listener_context_presentation: block_shuffle
+    speaker_type: joint_inference
+    speaker_config:
+      listener_context_presentation: block_shuffle
+      num_speaker_samples: 25
+      speaker_generation_config:
+        temperature: 0.9
+        top_p: 0.9
+    simulation_save_path: pixtral_results/speaker=joint_inference_block_shuffle-temperature=0.9-num_speaker_samples=25-listener=joint_inference-lambda=0.5-context=block_shuffle.json
+    
