@@ -12,17 +12,21 @@ class GenerateSpeaker(ChatSpeaker):
         model,
         processor,
         image_base_path: str = "",
+        generation_config=None,
         context_presentation="once",
         feedback_label=False,
-        generation_config=None,
         prompt_type="standard",
     ):
+        ChatSpeaker.__init__(
+            self,
+            context_presentation=context_presentation,
+            feedback_label=feedback_label,
+            prompt_type=prompt_type,
+        )
+
         self.model = model
         self.processor = processor
         self.image_base_path = image_base_path
-        self.context_presentation = context_presentation
-        self.feedback_label = feedback_label
-        self.prompt_type = prompt_type
 
         self.generation_config = {
             "max_new_tokens": 64,
@@ -76,7 +80,7 @@ class GenerateSpeaker(ChatSpeaker):
         return str(Path(self.image_base_path) / image_path)
 
 
-class JointInferenceSpeaker(ChatSpeaker):
+class JointInferenceSpeaker:
     def __init__(
         self,
         speaker_model,

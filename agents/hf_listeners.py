@@ -17,11 +17,14 @@ class GenerateListener(ChatListener):
         context_presentation="block_shuffle",
         feedback_label=False,
     ):
+        ChatListener.__init__(
+            self,
+            context_presentation=context_presentation,
+            feedback_label=feedback_label,
+        )
         self.model = model
         self.processor = processor
         self.image_base_path = image_base_path
-        self.context_presentation = context_presentation
-        self.feedback_label = feedback_label
         self.text_only_assistant = False
 
     def select(self, repeated_reference_game):
@@ -76,11 +79,14 @@ class ScoringListener(ChatListener):
         context_presentation="block_shuffle",
         feedback_label=False,
     ):
+        ChatListener.__init__(
+            self,
+            context_presentation=context_presentation,
+            feedback_label=feedback_label,
+        )
         self.model = model
         self.processor = processor
         self.image_base_path = image_base_path
-        self.context_presentation = context_presentation
-        self.feedback_label = feedback_label
         self.text_only_assistant = False
 
     @torch.no_grad()
@@ -198,7 +204,7 @@ class ScoringListener(ChatListener):
         return str(Path(self.image_base_path) / image_path)
 
 
-class JointInferenceListener(ChatListener):
+class JointInferenceListener:
     def __init__(
         self,
         listener_model,

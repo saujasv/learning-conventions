@@ -2,9 +2,13 @@ from typing import Tuple, List
 import itertools
 import random
 from game import RepeatedReferenceGame, Trial
+from .chat_agent import ChatAgent
 
 
-class ChatListener:
+class ChatListener(ChatAgent):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def get_label(self, context: Tuple[str], item: str):
         if item is None:
             return "Invalid"
@@ -163,148 +167,6 @@ class ChatListener:
             return None
 
         return context[selection_idx]
-
-    def construct_prompt_messages(
-        self, repeated_reference_game, exclude_feedback_on_last=False, random_seed=None
-    ):
-        intro = self.get_intro(repeated_reference_game.context)
-        if self.context_presentation == "no_history":
-            trial_messages = [
-                self.format_trial(
-                    repeated_reference_game.trials[-1],
-                    repeated_reference_game.context,
-                    show_images=True,
-                    trial_number=None,
-                    exclude_feedback=True,
-                )
-            ]
-            messages = [
-                *intro,
-                *itertools.chain.from_iterable(trial_messages),
-            ]
-
-            return self.collapse_turns(messages), repeated_reference_game.context
-        elif self.context_presentation == "once":
-            trial_messages = list()
-            show_images = True
-            for i, trial in enumerate(repeated_reference_game.trials):
-                if trial.message is None:
-                    continue
-
-                trial_messages.append(
-                    self.format_trial(
-                        trial,
-                        repeated_reference_game.context,
-                        show_images=show_images,
-                        trial_number=i + 1,
-                        exclude_feedback=(
-                            exclude_feedback_on_last
-                            if i == len(repeated_reference_game.trials) - 1
-                            else False
-                        ),
-                    )
-                )
-                show_images = False
-            messages = [
-                *intro,
-                *itertools.chain.from_iterable(trial_messages),
-            ]
-            return self.collapse_turns(messages), repeated_reference_game.context
-        elif self.context_presentation == "trial_shuffle":
-            if random_seed:
-                random.seed(random_seed)
-
-            trial_messages = []
-            for i, trial in enumerate(repeated_reference_game.trials):
-                trial_context = random.sample(
-                    repeated_reference_game.context,
-                    len(repeated_reference_game.context),
-                )
-                trial_messages.append(
-                    self.format_trial(
-                        trial,
-                        trial_context,
-                        show_images=True,
-                        trial_number=i + 1,
-                        exclude_feedback=(
-                            exclude_feedback_on_last
-                            if i == len(repeated_reference_game.trials) - 1
-                            else False
-                        ),
-                    )
-                )
-            messages = [
-                *intro,
-                *itertools.chain.from_iterable(trial_messages),
-            ]
-            return self.collapse_turns(messages), trial_context
-        elif self.context_presentation == "block_shuffle":
-            if random_seed:
-                random.seed(random_seed)
-            if not repeated_reference_game.validate_block_structure():
-                raise ValueError("Game does not have correct block structure.")
-
-            trial_messages = list()
-            trial_counter = 0
-            block_context = None
-
-            if len(repeated_reference_game.trials) == 0:
-                block_context = random.sample(
-                    repeated_reference_game.context,
-                    len(repeated_reference_game.context),
-                )
-
-            for block_idx, block in enumerate(
-                itertools.batched(
-                    repeated_reference_game.trials, len(repeated_reference_game.context)
-                )
-            ):
-                block_context = random.sample(
-                    repeated_reference_game.context,
-                    len(repeated_reference_game.context),
-                )
-                block_trials = list()
-                block_start_counter = trial_counter
-                for trial in block:
-                    messages = self.format_trial(
-                        trial,
-                        block_context,
-                        show_images=trial_counter == block_start_counter,
-                        trial_number=trial_counter + 1,
-                        exclude_feedback=(
-                            exclude_feedback_on_last
-                            if trial_counter == len(repeated_reference_game.trials) - 1
-                            else False
-                        ),
-                    )
-                    if len(messages) > 0:
-                        block_trials.append(messages)
-                        trial_counter += 1
-
-                trial_messages.extend(block_trials)
-
-            messages = [
-                *intro,
-                *itertools.chain.from_iterable(trial_messages),
-            ]
-
-            assert block_context is not None, "Block context should not be None."
-            return self.collapse_turns(messages), block_context
-        else:
-            raise ValueError("Invalid context presentation type.")
-
-    def collapse_turns(self, messages):
-        collapsed_messages = list()
-        for m in messages:
-            if (
-                len(collapsed_messages) > 0
-                and collapsed_messages[-1]["role"] == m["role"]
-            ):
-                collapsed_messages[-1]["content"] += m["content"]
-            else:
-                collapsed_messages.append(m)
-
-        return collapsed_messages
 
     def select(self, repeated_reference_game):
         if repeated_reference_game.trials[-1].message is None:

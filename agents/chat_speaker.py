@@ -3,9 +3,19 @@ import itertools
 import random
 from pathlib import Path
 from game import RepeatedReferenceGame, Trial
+from .chat_agent import ChatAgent
 
 
-class ChatSpeaker:
+class ChatSpeaker(ChatAgent):
+    def __init__(self, prompt_type: str = "standard", *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        assert prompt_type in [
+            "standard",
+            "explicit",
+        ], f"Invalid prompt type {prompt_type}"
+        self.prompt_type = prompt_type
+
     def get_label(self, context: Tuple[str], item: str):
         if item is None:
             return "Invalid"
@@ -34,33 +44,49 @@ class ChatSpeaker:
                     {
                         "type": "text",
                         "text": prompt,
-                    },
-                    *itertools.chain.from_iterable(
-                        [
-                            [
-                                {
-                                    "type": "text",
-                                    "text": f"\nImage {self.get_label(context, image)}: ",
-                                },
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": self.encode_image(image),
-                                    },
-                                },
-                            ]
-                            for image in context
-                        ]
-                    ),
+                    }
                 ],
             },
         ]
 
-    def format_trial(self, context, trial, trial_number=None, exclude_feedback=False):
+    def format_trial(
+        self,
+        trial: Trial,
+        context: Tuple[str],
+        show_images: bool = False,
+        trial_number: int = None,
+        exclude_feedback: bool = False,
+    ):
+        if trial.target is None:
+            raise ValueError("Trial must have target for speaker to generate")
+
         if trial_number is not None:
             trial_prompt = [{"type": "text", "text": f"Round {trial_number}, "}]
         else:
             trial_prompt = [{"type": "text", "text": f"Current round, "}]
+
+        if show_images:
+            images_prompt = list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            {
+                                "type": "text",
+                                "text": f"\nImage {self.get_label(context, image)}: ",
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": self.encode_image(image),
+                                },
+                            },
+                        ]
+                        for image in context
+                    ]
+                )
+            )
+        else:
+            images_prompt = []
 
         target_prompt = [
             {
@@ -140,6 +166,7 @@ class ChatSpeaker:
                 "role": "user",
                 "content": [
                     *trial_prompt,
+                    *images_prompt,
                     *target_prompt,
                 ],
             },
@@ -160,38 +187,53 @@ class ChatSpeaker:
 
         return collapsed_messages
 
-    def construct_prompt_messages(
-        self, repeated_reference_game, exclude_feedback_on_last=False
-    ):
-        intro = self.get_intro(repeated_reference_game.context)
-        if self.context_presentation == "no_history":
-            trials_messages = [
-                self.format_trial(
-                    repeated_reference_game.context,
-                    repeated_reference_game.trials[-1],
-                    trial_number=None,
-                    exclude_feedback=True,
-                )
-            ]
+    # def construct_prompt_messages(
+    #     self, repeated_reference_game, exclude_feedback_on_last=False
+    # ):
+    #     intro = self.get_intro(repeated_reference_game.context)
+    #     if self.context_presentation == "no_history":
+    #         trial_messages = itertools.chain.from_iterable(
+    #             [
+    #                 self.format_trial(
+    #                     repeated_reference_game.trials[-1],
+    #                     repeated_reference_game.context,
+    #                     trial_number=None,
+    #                     exclude_feedback=True,
+    #                     show_images=True,
+    #                 )
+    #             ]
+    #         )
+    #     elif self.context_presentation == "once":
+    #         trial_messages = list()
+    #         show_images = True
+    #         for i, trial in enumerate(repeated_reference_game.trials):
+    #             if trial.message is None:
+    #                 continue
 
-        elif self.context_presentation == "once":
-            trials_messages = itertools.chain.from_iterable(
-                [
-                    self.format_trial(
-                        repeated_reference_game.context,
-                        trial,
-                        trial_number=i + 1,
-                        exclude_feedback=(
-                            exclude_feedback_on_last
-                            if i == len(repeated_reference_game.trials) - 1
-                            else False
-                        ),
-                    )
-                    for i, trial in enumerate(repeated_reference_game.trials)
-                ]
-            )
-        messages = [*intro, *trials_messages]
-        return self.collapse_turns(messages)
+    #             trial_messages.append(
+    #                 self.format_trial(
+    #                     trial,
+    #                     repeated_reference_game.context,
+    #                     show_images=show_images,
+    #                     trial_number=i + 1,
+    #                     exclude_feedback=(
+    #                         exclude_feedback_on_last
+    #                         if i == len(repeated_reference_game.trials) - 1
+    #                         else False
+    #                     ),
+    #                 )
+    #             )
+    #             show_images = False
+    #     messages = [
+    #         *intro,
+    #         *itertools.chain.from_iterable(trial_messages),
+    #     ]
+    #     return self.collapse_turns(messages)
 
     def generate(self, repeated_reference_game):
+        if not hasattr(self, "api_call"):
+            raise NotImplementedError(
+                "ChatSpeaker can only generate when an api_call method is implemented or the generate method is overriden."
+            )
+
         return self.api_call(self.construct_prompt_messages(repeated_reference_game))
