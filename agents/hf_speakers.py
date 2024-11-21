@@ -5,6 +5,7 @@ import random
 import itertools
 from pathlib import Path
 from .chat_speaker import ChatSpeaker
+from .hf_listeners import ScoringListener
 from .utils import FIRELogitsWarper
 
 
@@ -91,105 +92,89 @@ class GenerateSpeaker(ChatSpeaker):
         return str(Path(self.image_base_path) / image_path)
 
 
-class JointInferenceSpeaker:
+class ScoringSpeaker(ChatSpeaker):
     def __init__(
         self,
-        speaker_model,
-        speaker_processor,
-        listener_model,
-        listener_processor,
+        model,
+        processor,
         image_base_path: str = "",
-        speaker_lambda=0.5,
-        num_speaker_samples=5,
-        listener_context_presentation="block_shuffle",
-        speaker_context_presentation="once",
-        listener_feedback_label=False,
-        speaker_feedback_label=False,
-        speaker_prompt_type="standard",
-        speaker_generation_config=None,
+        context_presentation="once",
+        feedback_label=False,
+        prompt_type="standard",
     ):
-        self.listener = ScoringListener(
-            listener_model,
-            listener_processor,
-            image_base_path,
-            listener_context_presentation,
-            listener_feedback_label,
+        ChatSpeaker.__init__(
+            self,
+            context_presentation=context_presentation,
+            feedback_label=feedback_label,
+            prompt_type=prompt_type,
         )
-        self.generate_speaker = GenerateSpeaker(
-            speaker_model,
-            speaker_processor,
-            image_base_path,
-            speaker_context_presentation,
-            speaker_feedback_label,
-            speaker_generation_config,
-            speaker_prompt_type,
-        )
-        self.scoring_speaker = ScoringSpeaker(
-            speaker_model,
-            speaker_processor,
-            image_base_path,
-            speaker_context_presentation,
-            speaker_feedback_label,
-            speaker_prompt_type,
+        self.model = model
+        self.processor = processor
+        self.image_base_path = image_base_path
+
+        self.text_only_assistant = False
+
+    @torch.no_grad()
+    def score(self, repeated_reference_game):
+        messages, _ = self.construct_prompt_messages(
+            repeated_reference_game, exclude_feedback_on_last=True
         )
 
-        self.num_speaker_samples = num_speaker_samples
-        self.speaker_lambda = speaker_lambda
+        context = messages[:-1]
+        formatted_context = self.processor.apply_chat_template(context)
+        processed_context = self.processor(
+            text=formatted_context,
+            images=list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            Image.open(chunk["image_url"]["url"]).convert("RGB")
+                            for chunk in m["content"]
+                            if chunk["type"] == "image_url"
+                        ]
+                        for m in messages
+                    ]
+                )
+            ),
+            return_tensors="pt",
+        )
+
+        formatted_messages = self.processor.apply_chat_template(messages)
+        processed = self.processor(
+            text=formatted_messages,
+            images=list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            Image.open(chunk["image_url"]["url"]).convert("RGB")
+                            for chunk in m["content"]
+                            if chunk["type"] == "image_url"
+                        ]
+                        for m in messages
+                    ]
+                )
+            ),
+            return_tensors="pt",
+        )
+
+        labels = processed.input_ids.clone()
+        labels[:, : processed_context.input_ids.shape[1]] = -100
+
+        outputs = self.model(
+            **processed.to(self.model.device, self.model.dtype),
+            labels=labels,
+            use_cache=False,
+        )
+
+        log_p = -outputs.loss.item() * (
+            processed.input_ids.shape[1] - processed_context.input_ids.shape[1]
+        )
+        return log_p
 
     def generate(self, repeated_reference_game):
-        speaker_samples = list(
-            set(
-                self.generate_speaker.generate(repeated_reference_game)
-                for _ in range(self.num_speaker_samples)
-            )
-        )
-        speaker_logprobs = torch.tensor(
-            [
-                self.scoring_speaker.score(
-                    RepeatedReferenceGame(
-                        context=repeated_reference_game.context,
-                        trials=[
-                            *repeated_reference_game.trials[:-1],
-                            Trial(
-                                target=repeated_reference_game.trials[-1].target,
-                                message=s,
-                                selection=repeated_reference_game.trials[-1].target,
-                                correct=True,
-                            ),
-                        ],
-                    )
-                )
-                for s in speaker_samples
-            ]
+        raise NotImplementedError(
+            "ScoringSpeaker can only be used for scoring sequences as a speaker agent"
         )
 
-        listener_logprobs = torch.tensor(
-            [
-                self.listener.score(
-                    RepeatedReferenceGame(
-                        context=repeated_reference_game.context,
-                        trials=[
-                            *repeated_reference_game.trials[:-1],
-                            Trial(
-                                target=repeated_reference_game.trials[-1].target,
-                                message=s,
-                                selection=repeated_reference_game.trials[-1].target,
-                                correct=True,
-                            ),
-                        ],
-                    )
-                )[repeated_reference_game.trials[-1].target]
-                for s in speaker_samples
-            ]
-        )
-
-        joint_logprobs_unnormalized = (
-            listener_logprobs * self.speaker_lambda
-            + (1 - self.speaker_lambda) * speaker_logprobs
-        )
-
-        joint_logprobs = (
-            joint_logprobs_unnormalized - joint_logprobs_unnormalized.logsumexp(dim=-1)
-        )
-
-        return speaker_samples[joint_logprobs.argmax().item()]
+    def encode_image(self, image_path):
+        return str(Path(self.image_base_path) / image_path)
