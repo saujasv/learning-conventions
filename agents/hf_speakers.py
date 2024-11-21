@@ -2,8 +2,10 @@ from typing import Tuple, List
 import torch
 from PIL import Image
 import random
+import itertools
 from pathlib import Path
 from .chat_speaker import ChatSpeaker
+from .utils import FIRELogitsWarper
 
 
 class GenerateSpeaker(ChatSpeaker):
@@ -15,6 +17,7 @@ class GenerateSpeaker(ChatSpeaker):
         generation_config=None,
         context_presentation="once",
         feedback_label=False,
+        inference_strategy="sampling",
         prompt_type="standard",
     ):
         ChatSpeaker.__init__(
@@ -39,10 +42,12 @@ class GenerateSpeaker(ChatSpeaker):
         if generation_config is not None:
             self.generation_config.update(generation_config)
 
+        self.inference_strategy = inference_strategy
+
         self.text_only_assistant = False
 
     def generate(self, repeated_reference_game):
-        messages = self.construct_prompt_messages(repeated_reference_game)
+        messages, _ = self.construct_prompt_messages(repeated_reference_game)
         formatted_messages = self.processor.apply_chat_template(
             messages, add_generation_prompt=True
         )
@@ -64,10 +69,16 @@ class GenerateSpeaker(ChatSpeaker):
             return_tensors="pt",
         )
 
+        if self.inference_strategy == "sampling":
+            logits_processor = None
+        elif self.inference_strategy == "fire":
+            logits_processor = [FIRELogitsWarper(self.processor)]
+
         outputs = self.model.generate(
             **processed.to(self.model.device, self.model.dtype),
             **self.generation_config,
             tokenizer=self.processor.tokenizer,
+            logits_processor=logits_processor,
         )
 
         response = self.processor.batch_decode(

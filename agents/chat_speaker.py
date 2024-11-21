@@ -187,49 +187,6 @@ class ChatSpeaker(ChatAgent):
 
         return collapsed_messages
 
-    # def construct_prompt_messages(
-    #     self, repeated_reference_game, exclude_feedback_on_last=False
-    # ):
-    #     intro = self.get_intro(repeated_reference_game.context)
-    #     if self.context_presentation == "no_history":
-    #         trial_messages = itertools.chain.from_iterable(
-    #             [
-    #                 self.format_trial(
-    #                     repeated_reference_game.trials[-1],
-    #                     repeated_reference_game.context,
-    #                     trial_number=None,
-    #                     exclude_feedback=True,
-    #                     show_images=True,
-    #                 )
-    #             ]
-    #         )
-    #     elif self.context_presentation == "once":
-    #         trial_messages = list()
-    #         show_images = True
-    #         for i, trial in enumerate(repeated_reference_game.trials):
-    #             if trial.message is None:
-    #                 continue
-
-    #             trial_messages.append(
-    #                 self.format_trial(
-    #                     trial,
-    #                     repeated_reference_game.context,
-    #                     show_images=show_images,
-    #                     trial_number=i + 1,
-    #                     exclude_feedback=(
-    #                         exclude_feedback_on_last
-    #                         if i == len(repeated_reference_game.trials) - 1
-    #                         else False
-    #                     ),
-    #                 )
-    #             )
-    #             show_images = False
-    #     messages = [
-    #         *intro,
-    #         *itertools.chain.from_iterable(trial_messages),
-    #     ]
-    #     return self.collapse_turns(messages)
-
     def generate(self, repeated_reference_game):
         if not hasattr(self, "api_call"):
             raise NotImplementedError(
