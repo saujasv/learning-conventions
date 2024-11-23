@@ -7,15 +7,22 @@ from pydantic_core import from_json
 from agents import (
     GPTListener,
     GPTSpeaker,
+    vLLMListener,
+    vLLMSpeaker,
+    ScoringListener,
+    GenerateListener,
+    GenerateSpeaker,
+    JointInferenceListener,
+    JointInferenceSpeaker,
     CoGenListener,
-    PixtralSpeaker,
-    PixtralListener,
 )
 from tqdm import tqdm
 import yaml
 from collections import defaultdict
 from vllm import LLM
 from copy import deepcopy
+import torch
+from transformers import AutoProcessor, AutoModelForVision2Seq
 
 
 def simulate(
@@ -51,13 +58,15 @@ def simulate(
         else:
             trials[-1].message = trial.message
 
-        if not listener is None:
+        if not isinstance(listener, str):
             trials[-1].selection = listener.select(
                 RepeatedReferenceGame(
                     context=repeated_reference_game.context, trials=trials
                 )
             )
-        else:
+        elif listener == "replay":
+            trials[-1].selection = repeated_reference_game.trials[i].selection
+        elif listener == "oracle":
             trials[-1].selection = trials[-1].target
 
         if trials[-1].selection is None:
@@ -94,32 +103,54 @@ def main(config_path, config_idx=None):
         if not config_idx is None and i != config_idx:
             continue
 
+        print(config)
+
         games = load_games(config["games_path"])
 
-        if config["listener_type"] == "pixtral" and config["speaker_type"] == "pixtral":
-            llm = LLM(
-                model=config["listener_config"]["model"],
-                tokenizer_mode="mistral",
-                limit_mm_per_prompt={"image": 64},
-                max_model_len=15625,
-                tensor_parallel_size=config["listener_config"]["tensor_parallel_size"],
+        if config.get("model_name_or_path", None):
+            processor = AutoProcessor.from_pretrained(config["model_name_or_path"])
+            model = AutoModelForVision2Seq.from_pretrained(
+                config["model_name_or_path"], torch_dtype=torch.float16
+            ).to("cuda")
+        else:
+            model = None
+            processor = None
+
+        if config["listener_type"] == "scoring":
+            listener = ScoringListener(
+                model,
+                processor,
+                **config["listener_config"],
+                image_base_path=config["images_path"],
             )
-            listener = PixtralListener(model=llm)
-            speaker = PixtralSpeaker(model=llm)
+        elif config["listener_type"] == "generate":
+            listener = GenerateListener(
+                model,
+                processor,
+                **config["listener_config"],
+                image_base_path=config["images_path"],
+            )
+        elif config["listener_type"] == "joint_inference":
+            listener = JointInferenceListener(
+                model,
+                processor,
+                model,
+                processor,
+                **config["listener_config"],
+                image_base_path=config["images_path"],
+            )
         elif config["listener_type"] == "gpt":
             listener = GPTListener(
-                **config["listener_config"], image_base_path=config["images_path"]
-            )
-        elif config["listener_type"] == "pixtral":
-            listener = PixtralListener(
                 **config["listener_config"], image_base_path=config["images_path"]
             )
         elif config["listener_type"] == "cogen":
             listener = CoGenListener(
                 **config["listener_config"], image_base_path=config["images_path"]
             )
+        elif config["listener_type"] == "replay":
+            listener = "replay"
         elif config["listener_type"] == "oracle":
-            listener = None
+            listener = "oracle"
 
         if config["speaker_type"] == "replay":
             speaker = None
@@ -127,10 +158,22 @@ def main(config_path, config_idx=None):
             speaker = GPTSpeaker(
                 **config["speaker_config"], image_base_path=config["images_path"]
             )
-        elif (
-            config["speaker_type"] == "pixtral" and config["listener_type"] != "pixtral"
-        ):
-            speaker = PixtralSpeaker(**config["speaker_config"])
+        elif config["speaker_type"] == "generate":
+            speaker = GenerateSpeaker(
+                model,
+                processor,
+                **config["speaker_config"],
+                image_base_path=config["images_path"],
+            )
+        elif config["speaker_type"] == "joint_inference":
+            speaker = JointInferenceSpeaker(
+                model,
+                processor,
+                model,
+                processor,
+                **config["speaker_config"],
+                image_base_path=config["images_path"],
+            )
 
         simulated_games = dict()
         iterator = configs.get("selected_games", games.keys())
