@@ -15,10 +15,8 @@ from .hf_speakers import GenerateSpeaker, ScoringSpeaker
 class JointInferenceSpeaker:
     def __init__(
         self,
-        speaker_model,
-        speaker_processor,
-        listener_model,
-        listener_processor,
+        model,
+        processor,
         image_base_path: str = "",
         speaker_lambda=0.5,
         num_speaker_samples=5,
@@ -30,15 +28,15 @@ class JointInferenceSpeaker:
         speaker_generation_config=None,
     ):
         self.listener = ScoringListener(
-            listener_model,
-            listener_processor,
+            model,
+            processor,
             image_base_path,
             context_presentation=listener_context_presentation,
             feedback_label=listener_feedback_label,
         )
         self.generate_speaker = GenerateSpeaker(
-            speaker_model,
-            speaker_processor,
+            model,
+            processor,
             image_base_path,
             context_presentation=speaker_context_presentation,
             feedback_label=speaker_feedback_label,

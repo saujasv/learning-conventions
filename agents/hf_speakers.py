@@ -4,9 +4,11 @@ from PIL import Image
 import random
 import itertools
 from pathlib import Path
+from transformers import PixtralProcessor
+from transformers.generation.logits_process import TopPLogitsWarper
 from .chat_speaker import ChatSpeaker
 from .hf_listeners import ScoringListener
-from .utils import FIRELogitsWarper
+from .utils import FIRELogitsWarper, TemperatureDecayLogitsWarper
 
 
 class GenerateSpeaker(ChatSpeaker):
@@ -18,7 +20,6 @@ class GenerateSpeaker(ChatSpeaker):
         generation_config=None,
         context_presentation="once",
         feedback_label=False,
-        inference_strategy="sampling",
         prompt_type="standard",
     ):
         ChatSpeaker.__init__(
@@ -40,53 +41,110 @@ class GenerateSpeaker(ChatSpeaker):
             "stop_strings": ["\n"],
         }
 
-        if generation_config is not None:
-            self.generation_config.update(generation_config)
+        self.inference_strategy = "sampling"
 
-        self.inference_strategy = inference_strategy
+        if generation_config is not None:
+            self.inference_strategy = generation_config.pop(
+                "inference_strategy", "sampling"
+            )
+            if self.inference_strategy == "fire":
+                self.fire_temperature = generation_config.pop("fire_temperature", 2.0)
+                self.fire_standard_temperature = generation_config.pop(
+                    "fire_standard_temperature", 0.3
+                )
+            elif self.inference_strategy == "temperature_decay":
+                self.temperature_decay_scale = generation_config.pop(
+                    "temperature_decay_scale", 2.0
+                )
+                self.temperature_decay_target = generation_config.pop(
+                    "temperature_decay_target", 0.3
+                )
+
+            self.generation_config.update(generation_config)
 
         self.text_only_assistant = False
 
-    def generate(self, repeated_reference_game):
+    def generate(self, repeated_reference_game, num_return_sequences=1):
         messages, _ = self.construct_prompt_messages(repeated_reference_game)
         formatted_messages = self.processor.apply_chat_template(
             messages, add_generation_prompt=True
         )
 
-        processed = self.processor(
-            text=formatted_messages,
-            images=list(
-                itertools.chain.from_iterable(
-                    [
-                        [
-                            Image.open(chunk["image_url"]["url"]).convert("RGB")
-                            for chunk in m["content"]
-                            if chunk["type"] == "image_url"
-                        ]
-                        for m in messages
-                    ]
-                )
-            ),
-            return_tensors="pt",
-        )
+        if isinstance(self.processor, PixtralProcessor):
+            processed = self.processor(
+                text=formatted_messages,
+                images=[
+                    list(
+                        itertools.chain.from_iterable(
+                            [
+                                [
+                                    Image.open(chunk["image_url"]["url"]).convert("RGB")
+                                    for chunk in m["content"]
+                                    if chunk["type"] == "image_url"
+                                ]
+                                for m in messages
+                            ]
+                        )
+                    )
+                    for _ in range(num_return_sequences)
+                ],
+                return_tensors="pt",
+            )
+        else:
+            processed = self.processor(
+                text=formatted_messages,
+                images=[
+                    list(
+                        itertools.chain.from_iterable(
+                            [
+                                [
+                                    Image.open(chunk["image_url"]["url"]).convert("RGB")
+                                    for chunk in m["content"]
+                                    if chunk["type"] == "image_url"
+                                ]
+                                for m in messages
+                            ]
+                        )
+                    )
+                ],
+                return_tensors="pt",
+            )
 
         if self.inference_strategy == "sampling":
             logits_processor = None
         elif self.inference_strategy == "fire":
-            logits_processor = [FIRELogitsWarper(self.processor)]
+            logits_processor = [
+                TopPLogitsWarper(self.generation_config["top_p"]),
+                FIRELogitsWarper(
+                    num_return_sequences=num_return_sequences,
+                    standard_temperature=self.fire_standard_temperature,
+                    fire_temperature=self.fire_temperature,
+                ),
+            ]
+        elif self.inference_strategy == "temperature_decay":
+            logits_processor = [
+                TopPLogitsWarper(self.generation_config["top_p"]),
+                TemperatureDecayLogitsWarper(
+                    self.temperature_decay_scale, self.temperature_decay_target
+                ),
+            ]
 
         outputs = self.model.generate(
             **processed.to(self.model.device, self.model.dtype),
             **self.generation_config,
             tokenizer=self.processor.tokenizer,
             logits_processor=logits_processor,
+            num_return_sequences=num_return_sequences,
         )
 
-        response = self.processor.batch_decode(
-            outputs[:, processed.input_ids.shape[1] :], skip_special_tokens=True
-        )[0].strip(" \n\t\"'")
+        response = [
+            x.strip()
+            for x in self.processor.batch_decode(
+                outputs[:, processed.input_ids.shape[1] :], skip_special_tokens=True
+            )
+        ]
 
-        return response
+        return response if num_return_sequences > 1 else response[0]
 
     def encode_image(self, image_path):
         return str(Path(self.image_base_path) / image_path)

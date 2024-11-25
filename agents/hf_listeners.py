@@ -148,6 +148,7 @@ class ScoringListener(ChatListener):
                 )
                 for cfpm in counterfactual_prompt_messages
             ],
+            return_tensors="pt",
         )
 
         # get identify the longest prefix that's common to the different perturbed prompts
@@ -178,6 +179,7 @@ class ScoringListener(ChatListener):
                     )
                 )
             ],
+            return_tensors="pt",
         )
 
         outputs = self.model(
