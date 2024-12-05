@@ -40,7 +40,7 @@ class GenerateSpeaker(ChatSpeaker):
             "stop_strings": ["\n"],
         }
 
-        if generation_config is not None:
+        if generation_config:
             self.generation_config.update(generation_config)
 
         self.inference_strategy = inference_strategy

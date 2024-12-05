@@ -89,7 +89,7 @@ def load_games(games_path):
 
     games = dict()
     for gameid, rrg_data in data.items():
-        rrg = RepeatedReferenceGame.model_validate_json(json.dumps(rrg_data))
+        rrg = RepeatedReferenceGame.model_validate(rrg_data)
         games[gameid] = rrg
 
     return games
