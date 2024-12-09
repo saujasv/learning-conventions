@@ -34,7 +34,7 @@ def sample_kilogram_description(annotations, min_parts=0, max_parts=0):
 
         num_parts = random.randint(min_parts, max_parts)
 
-        parts = random.sample(unique_parts, num_parts)
+        parts = random.sample(unique_parts, min(len(unique_parts), num_parts))
         part_phrases = list()
         for part in parts:
             last_word = part.split(" ")[-1]
@@ -87,9 +87,9 @@ def sample_game(
                 selection = random.choice(context)
                 trials.append(
                     Trial(
-                        target=target_referent,
+                        target=f"{target_referent}.png",
                         message=description,
-                        selection=selection,
+                        selection=f"{selection}.png",
                         correct=target_referent == selection,
                     )
                 )
@@ -107,14 +107,14 @@ def sample_game(
             selection = random.choice(context)
             trials.append(
                 Trial(
-                    target=target_referent,
+                    target=f"{target_referent}.png",
                     message=description,
-                    selection=selection,
+                    selection=f"{selection}.png",
                     correct=target_referent == selection,
                 )
             )
 
-    return RepeatedReferenceGame(context=context, trials=trials)
+    return RepeatedReferenceGame(context=[f"{c}.png" for c in context], trials=trials)
 
 
 def sample_training_games(
@@ -122,6 +122,7 @@ def sample_training_games(
     save_path,
     num_games,
     num_referents,
+    incremental=False,
     num_trials=None,
     num_blocks=None,
     block_structure=False,
@@ -132,8 +133,9 @@ def sample_training_games(
         kilogram_descriptions = json.load(f)
 
     referents_pool = list(kilogram_descriptions.keys())
-    games = [
-        sample_game(
+    games = list()
+    for _ in range(num_games):
+        game = sample_game(
             referents_pool,
             kilogram_descriptions,
             num_referents,
@@ -143,8 +145,15 @@ def sample_training_games(
             min_parts,
             max_parts,
         )
-        for _ in range(num_games)
-    ]
+
+        if incremental:
+            for i, t in enumerate(game.trials):
+                incremental_game = RepeatedReferenceGame(
+                    context=game.context, trials=game.trials[: i + 1]
+                )
+                games.append(incremental_game)
+        else:
+            games.append(game)
 
     with jsonlines.open(save_path, "w") as writer:
         writer.write_all(map(lambda g: g.model_dump(mode="json"), games))
