@@ -16,7 +16,7 @@ class GenerateSpeaker(ChatSpeaker):
         processor,
         image_base_path: str = "",
         generation_config=None,
-        context_presentation="once",
+        context_presentation="last_shuffle",
         feedback_label=False,
         inference_strategy="sampling",
         prompt_type="standard",
