@@ -22,7 +22,7 @@ from collections import defaultdict
 from vllm import LLM
 from copy import deepcopy
 import torch
-from transformers import AutoProcessor, AutoModelForVision2Seq
+from transformers import AutoProcessor, AutoModelForVision2Seq, Idefics3Processor
 
 
 def simulate(
@@ -89,7 +89,7 @@ def load_games(games_path):
 
     games = dict()
     for gameid, rrg_data in data.items():
-        rrg = RepeatedReferenceGame.model_validate_json(json.dumps(rrg_data))
+        rrg = RepeatedReferenceGame.model_validate(rrg_data)
         games[gameid] = rrg
 
     return games
@@ -109,9 +109,15 @@ def main(config_path, config_idx=None):
 
         if config.get("model_name_or_path", None):
             processor = AutoProcessor.from_pretrained(config["model_name_or_path"])
+            if isinstance(processor, Idefics3Processor):
+                processor.image_processor.do_image_splitting = False
             model = AutoModelForVision2Seq.from_pretrained(
-                config["model_name_or_path"], torch_dtype="auto", device_map="cuda"
+                config["model_name_or_path"],
+                torch_dtype="auto",
+                device_map=config.get("device_map", "cuda"),
             )
+            if config.get("adapter_name_or_path", None):
+                model.load_adapter(config["adapter_name_or_path"])
         else:
             model = None
             processor = None
@@ -124,11 +130,18 @@ def main(config_path, config_idx=None):
                 listener_processor = AutoProcessor.from_pretrained(
                     listener_model_name_or_path
                 )
+                if isinstance(listener_processor, Idefics3Processor):
+                    listener_processor.image_processor.do_image_splitting = False
                 listener_model = AutoModelForVision2Seq.from_pretrained(
                     listener_model_name_or_path,
                     torch_dtype="auto",
-                    device_map="cuda",
+                    device_map=config["listener_config"].pop("device_map", "cuda"),
                 )
+                adapter_name_or_path = config["listener_config"].pop(
+                    "adapter_name_or_path", None
+                )
+                if adapter_name_or_path:
+                    listener_model.load_adapter(adapter_name_or_path)
             else:
                 listener_model = model
                 listener_processor = processor
@@ -146,11 +159,19 @@ def main(config_path, config_idx=None):
                 listener_processor = AutoProcessor.from_pretrained(
                     listener_model_name_or_path
                 )
+                if isinstance(listener_processor, Idefics3Processor):
+                    listener_processor.image_processor.do_image_splitting = False
                 listener_model = AutoModelForVision2Seq.from_pretrained(
                     listener_model_name_or_path,
                     torch_dtype="auto",
-                    device_map="cuda",
+                    device_map=config["listener_config"].pop("device_map", "cuda"),
                 )
+
+                adapter_name_or_path = config["listener_config"].pop(
+                    "adapter_name_or_path", None
+                )
+                if adapter_name_or_path:
+                    listener_model.load_adapter(adapter_name_or_path)
             else:
                 listener_model = model
                 listener_processor = processor
@@ -169,11 +190,18 @@ def main(config_path, config_idx=None):
                 listener_processor = AutoProcessor.from_pretrained(
                     listener_model_name_or_path
                 )
+                if isinstance(listener_processor, Idefics3Processor):
+                    listener_processor.image_processor.do_image_splitting = False
                 listener_model = AutoModelForVision2Seq.from_pretrained(
                     listener_model_name_or_path,
                     torch_dtype="auto",
-                    device_map="cuda",
+                    device_map=config["listener_config"].pop("device_map", "cuda"),
                 )
+                adapter_name_or_path = config["listener_config"].pop(
+                    "adapter_name_or_path", None
+                )
+                if adapter_name_or_path:
+                    listener_model.load_adapter(adapter_name_or_path)
             else:
                 listener_model = model
                 listener_processor = processor
@@ -210,11 +238,18 @@ def main(config_path, config_idx=None):
                 speaker_processor = AutoProcessor.from_pretrained(
                     speaker_model_name_or_path
                 )
+                if isinstance(speaker_processor, Idefics3Processor):
+                    speaker_processor.image_processor.do_image_splitting = False
                 speaker_model = AutoModelForVision2Seq.from_pretrained(
                     speaker_model_name_or_path,
                     torch_dtype="auto",
-                    device_map="cuda",
+                    device_map=config["speaker_config"].pop("device_map", "cuda"),
                 )
+                adapter_name_or_path = config["speaker_config"].pop(
+                    "adapter_name_or_path", None
+                )
+                if adapter_name_or_path:
+                    speaker_model.load_adapter(adapter_name_or_path)
             else:
                 speaker_model = model
                 speaker_processor = processor
@@ -232,11 +267,18 @@ def main(config_path, config_idx=None):
                 speaker_processor = AutoProcessor.from_pretrained(
                     speaker_model_name_or_path
                 )
+                if isinstance(speaker_processor, Idefics3Processor):
+                    speaker_processor.image_processor.do_image_splitting = False
                 speaker_model = AutoModelForVision2Seq.from_pretrained(
                     speaker_model_name_or_path,
                     torch_dtype="auto",
-                    device_map="cuda",
+                    device_map=config["speaker_config"].pop("device_map", "cuda"),
                 )
+                adapter_name_or_path = config["speaker_config"].pop(
+                    "adapter_name_or_path", None
+                )
+                if adapter_name_or_path:
+                    speaker_model.load_adapter(adapter_name_or_path)
             else:
                 speaker_model = model
                 speaker_processor = processor
