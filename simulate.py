@@ -110,32 +110,76 @@ def main(config_path, config_idx=None):
         if config.get("model_name_or_path", None):
             processor = AutoProcessor.from_pretrained(config["model_name_or_path"])
             model = AutoModelForVision2Seq.from_pretrained(
-                config["model_name_or_path"], torch_dtype=torch.float16
-            ).to("cuda")
+                config["model_name_or_path"], torch_dtype="auto", device_map="cuda"
+            )
         else:
             model = None
             processor = None
 
         if config["listener_type"] == "scoring":
+            listener_model_name_or_path = config["listener_config"].pop(
+                "model_name_or_path", None
+            )
+            if listener_model_name_or_path:
+                listener_processor = AutoProcessor.from_pretrained(
+                    listener_model_name_or_path
+                )
+                listener_model = AutoModelForVision2Seq.from_pretrained(
+                    listener_model_name_or_path,
+                    torch_dtype="auto",
+                    device_map="cuda",
+                )
+            else:
+                listener_model = model
+                listener_processor = processor
             listener = ScoringListener(
-                model,
-                processor,
+                listener_model,
+                listener_processor,
                 **config["listener_config"],
                 image_base_path=config["images_path"],
             )
         elif config["listener_type"] == "generate":
+            listener_model_name_or_path = config["listener_config"].pop(
+                "model_name_or_path", None
+            )
+            if listener_model_name_or_path:
+                listener_processor = AutoProcessor.from_pretrained(
+                    listener_model_name_or_path
+                )
+                listener_model = AutoModelForVision2Seq.from_pretrained(
+                    listener_model_name_or_path,
+                    torch_dtype="auto",
+                    device_map="cuda",
+                )
+            else:
+                listener_model = model
+                listener_processor = processor
+
             listener = GenerateListener(
-                model,
-                processor,
+                listener_model,
+                listener_processor,
                 **config["listener_config"],
                 image_base_path=config["images_path"],
             )
         elif config["listener_type"] == "joint_inference":
+            listener_model_name_or_path = config["listener_config"].pop(
+                "model_name_or_path", None
+            )
+            if listener_model_name_or_path:
+                listener_processor = AutoProcessor.from_pretrained(
+                    listener_model_name_or_path
+                )
+                listener_model = AutoModelForVision2Seq.from_pretrained(
+                    listener_model_name_or_path,
+                    torch_dtype="auto",
+                    device_map="cuda",
+                )
+            else:
+                listener_model = model
+                listener_processor = processor
             listener = JointInferenceListener(
-                model,
-                processor,
-                model,
-                processor,
+                listener_model,
+                listener_processor,
                 **config["listener_config"],
                 image_base_path=config["images_path"],
             )
@@ -159,18 +203,46 @@ def main(config_path, config_idx=None):
                 **config["speaker_config"], image_base_path=config["images_path"]
             )
         elif config["speaker_type"] == "generate":
+            speaker_model_name_or_path = config["speaker_config"].pop(
+                "model_name_or_path", None
+            )
+            if speaker_model_name_or_path:
+                speaker_processor = AutoProcessor.from_pretrained(
+                    speaker_model_name_or_path
+                )
+                speaker_model = AutoModelForVision2Seq.from_pretrained(
+                    speaker_model_name_or_path,
+                    torch_dtype="auto",
+                    device_map="cuda",
+                )
+            else:
+                speaker_model = model
+                speaker_processor = processor
             speaker = GenerateSpeaker(
-                model,
-                processor,
+                speaker_model,
+                speaker_processor,
                 **config["speaker_config"],
                 image_base_path=config["images_path"],
             )
         elif config["speaker_type"] == "joint_inference":
+            speaker_model_name_or_path = config["speaker_config"].pop(
+                "model_name_or_path", None
+            )
+            if speaker_model_name_or_path:
+                speaker_processor = AutoProcessor.from_pretrained(
+                    speaker_model_name_or_path
+                )
+                speaker_model = AutoModelForVision2Seq.from_pretrained(
+                    speaker_model_name_or_path,
+                    torch_dtype="auto",
+                    device_map="cuda",
+                )
+            else:
+                speaker_model = model
+                speaker_processor = processor
             speaker = JointInferenceSpeaker(
-                model,
-                processor,
-                model,
-                processor,
+                speaker_model,
+                speaker_processor,
                 **config["speaker_config"],
                 image_base_path=config["images_path"],
             )

@@ -15,10 +15,8 @@ from .hf_speakers import ScoringSpeaker
 class JointInferenceListener:
     def __init__(
         self,
-        listener_model,
-        listener_processor,
-        speaker_model,
-        speaker_processor,
+        model,
+        processor,
         listener_lambda=0.5,
         image_base_path: str = "",
         listener_context_presentation="block_shuffle",
@@ -28,15 +26,15 @@ class JointInferenceListener:
         speaker_prompt_type="standard",
     ):
         self.listener = ScoringListener(
-            listener_model,
-            listener_processor,
+            model,
+            processor,
             image_base_path,
             listener_context_presentation,
             listener_feedback_label,
         )
         self.speaker = ScoringSpeaker(
-            speaker_model,
-            speaker_processor,
+            model,
+            processor,
             image_base_path,
             speaker_context_presentation,
             speaker_feedback_label,
@@ -65,12 +63,19 @@ class JointInferenceListener:
             for referent in repeated_reference_game.context
         }
 
-        speaker_logprobs = torch.tensor(
-            [speaker_outputs[r] for r in repeated_reference_game.context]
-        )
-        listener_logprobs = torch.tensor(
-            [listener_outputs[r] for r in repeated_reference_game.context]
-        )
+        if 1 - self.listener_lambda > 0:
+            speaker_logprobs = torch.tensor(
+                [speaker_outputs[r] for r in repeated_reference_game.context]
+            )
+        else:
+            speaker_logprobs = torch.zeros(len(repeated_reference_game.context))
+
+        if self.listener_lambda > 0:
+            listener_logprobs = torch.tensor(
+                [listener_outputs[r] for r in repeated_reference_game.context]
+            )
+        else:
+            listener_logprobs = torch.zeros(len(repeated_reference_game.context))
 
         joint_logprobs_unnormalized = (
             listener_logprobs * self.listener_lambda
