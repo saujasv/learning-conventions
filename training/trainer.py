@@ -66,7 +66,7 @@ def train(
             None,
             processor,
             image_base_path=kwargs.get("--images_base_path", None),
-            context_presentation=context_presentation,
+            context_presentation=kwargs.get("--context_presentation", "last_shuffle"),
         )
 
     ################

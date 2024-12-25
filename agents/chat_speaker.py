@@ -99,8 +99,24 @@ class ChatSpeaker(ChatAgent):
             if trial.message is None:
                 return []
 
+            if hasattr(self, "use_length_token"):
+                if self.use_length_token:
+                    processor = getattr(self, "processor", None)
+                    if not processor:
+                        raise ValueError(
+                            "Processor must be provided to use length token"
+                        )
+                    encoded = processor.tokenizer.encode(
+                        trial.message, add_special_tokens=False
+                    )
+                    formatted_message = f"<{len(encoded)}> {trial.message}"
+                else:
+                    formatted_message = trial.message
+            else:
+                formatted_message = trial.message
+
             if self.text_only_assistant:
-                message_prompt = [{"role": "assistant", "content": trial.message}]
+                message_prompt = [{"role": "assistant", "content": formatted_message}]
             else:
                 message_prompt = [
                     {
@@ -108,7 +124,7 @@ class ChatSpeaker(ChatAgent):
                         "content": [
                             {
                                 "type": "text",
-                                "text": trial.message,
+                                "text": formatted_message,
                             }
                         ],
                     }
