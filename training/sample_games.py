@@ -72,6 +72,8 @@ def sample_game(
     block_structure=False,
     min_parts=0,
     max_parts=0,
+    reuse_descriptions=False,
+    oracle_listener=False,
 ):
     context = sample_context(referents_pool, num_referents)
     trials = list()
@@ -98,13 +100,28 @@ def sample_game(
             raise ValueError(
                 "num_trials must be specified if not using block structure"
             )
+
+        if reuse_descriptions:
+            selected_annotations = dict()
+
         for t in range(num_trials):
             target_referent = random.choice(context)
 
-            description = sample_kilogram_description(
-                descriptions[target_referent]["annotations"], min_parts, max_parts
-            )
-            selection = random.choice(context)
+            if reuse_descriptions and not target_referent in selected_annotations:
+                selected_annotations[target_referent] = [random.choice(
+                    descriptions[target_referent]["annotations"]
+                )]
+
+            if reuse_descriptions:
+                description = sample_kilogram_description(
+                    selected_annotations[target_referent], min_parts, max_parts
+                )
+            else:
+                description = sample_kilogram_description(
+                    descriptions[target_referent]["annotations"], min_parts, max_parts
+                )
+
+            selection = target_referent if oracle_listener else random.choice(context)
             trials.append(
                 Trial(
                     target=f"{target_referent}.png",
@@ -128,6 +145,8 @@ def sample_training_games(
     block_structure=False,
     min_parts=0,
     max_parts=0,
+    reuse_descriptions=False,
+    oracle_listener=False,
 ):
     with open(kilogram_data_path) as f:
         kilogram_descriptions = json.load(f)
@@ -144,6 +163,8 @@ def sample_training_games(
             block_structure,
             min_parts,
             max_parts,
+            reuse_descriptions,
+            oracle_listener,
         )
 
         if incremental:

@@ -1,5 +1,5 @@
 from trl import ModelConfig, ScriptArguments, SFTConfig, TrlParser
-from training.trainer import train
+from training.trainer_unsloth import train_unsloth
 import itertools
 
 if __name__ == "__main__":
@@ -8,4 +8,6 @@ if __name__ == "__main__":
         return_remaining_strings=True
     )
 
-    train(script_args, training_args, model_config, **dict(itertools.batched(args, 2)))
+    train_unsloth(
+        script_args, training_args, model_config, **dict(itertools.batched(args, 2))
+    )
