@@ -63,11 +63,14 @@ def train_unsloth(
 
     agent_type = kwargs.get("--agent_type", "speaker")
     if agent_type == "speaker":
+        use_length_token = kwargs.get("--use_length_token", "False")
+
         agent = GenerateSpeaker(
             None,
             processor,
             image_base_path=kwargs.get("--images_base_path", None),
             context_presentation=kwargs.get("--context_presentation", "last_shuffle"),
+            use_length_token=use_length_token == "True",
         )
     elif agent_type == "listener":
         agent = GenerateListener(
