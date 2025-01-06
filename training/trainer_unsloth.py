@@ -12,6 +12,8 @@ def train_unsloth(
     script_args,
     training_args,
     model_config,
+    data_config,
+    lora_config,
     **kwargs,
 ):
     training_args.remove_unused_columns = False
@@ -39,15 +41,15 @@ def train_unsloth(
 
     model = FastVisionModel.get_peft_model(
         model,
-        finetune_vision_layers=True,
-        finetune_language_layers=True,
-        finetune_attention_modules=False,
-        finetune_mlp_modules=True,
-        r=8,
-        lora_alpha=8,
-        lora_dropout=0,
+        finetune_vision_layers=lora_config.finetune_vision_layers,
+        finetune_language_layers=lora_config.finetune_language_layers,
+        finetune_attention_modules=lora_config.finetune_attention_modules,
+        finetune_mlp_modules=lora_config.finetune_mlp_modules,
+        r=model_config.lora_r,
+        lora_alpha=model_config.lora_alpha,
+        lora_dropout=model_config.lora_dropout,
         bias="none",
-        random_state=412,
+        random_state=lora_config.random_state,
     )
 
     ################
@@ -61,23 +63,20 @@ def train_unsloth(
         },
     )
 
-    agent_type = kwargs.get("--agent_type", "speaker")
-    if agent_type == "speaker":
-        use_length_token = kwargs.get("--use_length_token", "False")
-
+    if data_config.agent_type == "speaker":
         agent = GenerateSpeaker(
             None,
             processor,
-            image_base_path=kwargs.get("--images_base_path", None),
-            context_presentation=kwargs.get("--context_presentation", "last_shuffle"),
-            use_length_token=use_length_token == "True",
+            image_base_path=data_config.images_base_path,
+            context_presentation=data_config.context_presentation,
+            use_length_token=data_config.use_length_token,
         )
-    elif agent_type == "listener":
+    elif data_config.agent_type == "listener":
         agent = GenerateListener(
             None,
             processor,
-            image_base_path=kwargs.get("--images_base_path", None),
-            context_presentation=kwargs.get("--context_presentation", "last_shuffle"),
+            image_base_path=data_config.images_base_path,
+            context_presentation=data_config.context_presentation,
         )
 
     ################
