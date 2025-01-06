@@ -1,5 +1,6 @@
 import torch
-from trl import SFTTrainer, get_peft_config
+from trl import SFTTrainer, SFTConfig, get_peft_config
+from unsloth import FastVisionModel, is_bf16_supported
 from transformers import AutoModelForVision2Seq, AutoProcessor
 from datasets import load_dataset
 from training.collator import RepeatedReferenceGameCollator
@@ -7,13 +8,14 @@ from agents import GenerateSpeaker, GenerateListener
 from pathlib import Path
 
 
-def train(
+def train_unsloth(
     script_args,
     training_args,
     model_config,
+    data_config,
+    lora_config,
     **kwargs,
 ):
-    training_args.gradient_checkpointing_kwargs = dict(use_reentrant=False)
     training_args.remove_unused_columns = False
     training_args.dataset_kwargs = {"skip_prepare_dataset": True}
 
@@ -30,16 +32,24 @@ def train(
         attn_implementation=model_config.attn_implementation,
         torch_dtype=torch_dtype,
     )
-    processor = AutoProcessor.from_pretrained(
-        model_config.model_name_or_path,
-        trust_remote_code=model_config.trust_remote_code,
-    )
-    processor.image_processor.do_image_splitting = False
 
-    model = AutoModelForVision2Seq.from_pretrained(
+    model, processor = FastVisionModel.from_pretrained(
         model_config.model_name_or_path,
-        trust_remote_code=model_config.trust_remote_code,
-        **model_kwargs,
+        use_gradient_checkpointing="unsloth",
+        load_in_4bit=False,
+    )
+
+    model = FastVisionModel.get_peft_model(
+        model,
+        finetune_vision_layers=lora_config.finetune_vision_layers,
+        finetune_language_layers=lora_config.finetune_language_layers,
+        finetune_attention_modules=lora_config.finetune_attention_modules,
+        finetune_mlp_modules=lora_config.finetune_mlp_modules,
+        r=model_config.lora_r,
+        lora_alpha=model_config.lora_alpha,
+        lora_dropout=model_config.lora_dropout,
+        bias="none",
+        random_state=lora_config.random_state,
     )
 
     ################
@@ -53,25 +63,27 @@ def train(
         },
     )
 
-    agent_type = kwargs.get("--agent_type", "speaker")
-    if agent_type == "speaker":
+    if data_config.agent_type == "speaker":
         agent = GenerateSpeaker(
             None,
             processor,
-            image_base_path=kwargs.get("--images_base_path", None),
-            context_presentation=kwargs.get("--context_presentation", "last_shuffle"),
+            image_base_path=data_config.images_base_path,
+            context_presentation=data_config.context_presentation,
+            use_length_token=data_config.use_length_token,
         )
-    elif agent_type == "listener":
+    elif data_config.agent_type == "listener":
         agent = GenerateListener(
             None,
             processor,
-            image_base_path=kwargs.get("--images_base_path", None),
-            context_presentation=kwargs.get("--context_presentation", "last_shuffle"),
+            image_base_path=data_config.images_base_path,
+            context_presentation=data_config.context_presentation,
         )
 
     ################
     # Training
     ################
+
+    FastVisionModel.for_training(model)
     trainer = SFTTrainer(
         model=model,
         args=training_args,
@@ -83,7 +95,6 @@ def train(
             else None
         ),
         processing_class=processor.tokenizer,
-        peft_config=get_peft_config(model_config),
     )
 
     trainer.train()

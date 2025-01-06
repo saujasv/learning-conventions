@@ -4,6 +4,7 @@ from transformers import (
     Idefics3Processor,
     DataCollatorForLanguageModeling,
 )
+from accelerate import Accelerator
 from transformers.models.pixtral.processing_pixtral import BatchMixFeature
 from transformers.feature_extraction_utils import BatchFeature
 from game import RepeatedReferenceGame, Trial
@@ -65,17 +66,6 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
     def torch_call(
         self, examples: list[Union[list[int], Any, dict[str, Any]]]
     ) -> dict[str, Any]:
-        # import ipdb
-
-        # ipdb.set_trace()
-        # original_padding_side = self.tokenizer.padding_side
-        # self.tokenizer.padding_side = self.padding_side
-        # batch = super().torch_call(
-        #     [{k: v for k, v in x.items() if k != "pixel_values"} for x in examples]
-        # )
-        # self.tokenizer.padding_side = original_padding_side
-        # batch = super().torch_call(examples)
-
         labels = examples.input_ids.clone()
         if self.tokenizer.pad_token_id is not None:
             labels[labels == self.tokenizer.pad_token_id] = -100
@@ -215,10 +205,22 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
             batch["labels"] = batch["labels"][attn_mask.bool()].unsqueeze(0)
             batch["labels"][batch["position_ids"] == 0] = self.ignore_index
 
-        return batch
-        # return BatchMixFeature(
-        #     data={**batch, "pixel_values": [x["pixel_values"] for x in examples]}
-        # )
+        # if Accelerator().is_main_process:
+        #     import ipdb
+
+        #     ipdb.set_trace()
+
+        # Accelerator().wait_for_everyone()
+        if isinstance(self.agent.processor, PixtralProcessor):
+            return BatchMixFeature(
+                data={
+                    **batch
+                    # .pop("pixel_values"),
+                    # "pixel_values": [x["pixel_values"] for x in examples],
+                }
+            )
+        else:
+            return batch
 
     def __call__(self, batch):
         games = [RepeatedReferenceGame.model_validate(g) for g in batch]
@@ -241,15 +243,6 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
             )
             for messages, _ in game_messages
         ]
-
-        # processed = [
-        #     self.agent.processor(text=text, images=images, return_tensors="pt")
-        #     for text, images in zip(message_texts, message_images)
-        # ]
-
-        # collated_batch = self.torch_call(
-        #     [{k: v for k, v in p.items()} for p in processed]
-        # )
 
         processed = self.agent.processor(
             text=message_texts, images=message_images, return_tensors="pt", padding=True

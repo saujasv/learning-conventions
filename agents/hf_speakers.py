@@ -5,6 +5,7 @@ import random
 import itertools
 from pathlib import Path
 from transformers import PixtralProcessor
+import warnings
 from transformers.generation.logits_process import TopPLogitsWarper
 from .chat_speaker import ChatSpeaker
 from .hf_listeners import ScoringListener
@@ -21,6 +22,7 @@ class GenerateSpeaker(ChatSpeaker):
         context_presentation="last_shuffle",
         feedback_label=False,
         prompt_type="standard",
+        use_length_token=False,
     ):
         ChatSpeaker.__init__(
             self,
@@ -32,6 +34,7 @@ class GenerateSpeaker(ChatSpeaker):
         self.model = model
         self.processor = processor
         self.image_base_path = image_base_path
+        self.use_length_token = use_length_token
 
         self.generation_config = {
             "max_new_tokens": 64,
@@ -64,11 +67,30 @@ class GenerateSpeaker(ChatSpeaker):
 
         self.text_only_assistant = False
 
-    def generate(self, repeated_reference_game, num_return_sequences=1):
+    def generate(
+        self, repeated_reference_game, num_return_sequences=1, target_length=None
+    ):
         messages, _ = self.construct_prompt_messages(repeated_reference_game)
-        formatted_messages = self.processor.apply_chat_template(
-            messages, add_generation_prompt=True
-        )
+        if target_length:
+            if not self.use_length_token:
+                warnings.warn("Length value is ignored when use_length_token is False")
+                formatted_messages = self.processor.apply_chat_template(
+                    messages, add_generation_prompt=True
+                )
+            else:
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": [{"type": "text", "text": f"<{target_length}>"}],
+                    }
+                )
+                formatted_messages = self.processor.apply_chat_template(
+                    messages, continue_final_message=True
+                )
+        else:
+            formatted_messages = self.processor.apply_chat_template(
+                messages, add_generation_prompt=True
+            )
 
         if isinstance(self.processor, PixtralProcessor):
             processed = self.processor(
