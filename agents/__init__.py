@@ -1,4 +1,4 @@
-from .cogen_agents import CoGenListener
+# from .cogen_agents import CoGenListener
 from .hf_listeners import ScoringListener, GenerateListener
 from .hf_joint_listener import JointInferenceListener
 from .hf_speakers import GenerateSpeaker

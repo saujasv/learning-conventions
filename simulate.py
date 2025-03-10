@@ -14,7 +14,7 @@ from agents import (
     GenerateSpeaker,
     JointInferenceListener,
     JointInferenceSpeaker,
-    CoGenListener,
+    # CoGenListener,
 )
 from tqdm import tqdm
 import yaml
@@ -215,10 +215,10 @@ def main(config_path, config_idx=None):
             listener = GPTListener(
                 **config["listener_config"], image_base_path=config["images_path"]
             )
-        elif config["listener_type"] == "cogen":
-            listener = CoGenListener(
-                **config["listener_config"], image_base_path=config["images_path"]
-            )
+        # elif config["listener_type"] == "cogen":
+        #     listener = CoGenListener(
+        #         **config["listener_config"], image_base_path=config["images_path"]
+        #     )
         elif config["listener_type"] == "replay":
             listener = "replay"
         elif config["listener_type"] == "oracle":

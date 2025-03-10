@@ -103,7 +103,8 @@ class ScoringListener(ChatListener):
                         target=repeated_reference_game.trials[-1].target,
                         message=repeated_reference_game.trials[-1].message,
                         selection=c,
-                        correct=c == repeated_reference_game.trials[-1].target,
+                        # correct=c == repeated_reference_game.trials[-1].target,
+                        correct=True,
                     ),
                 ],
             )
@@ -130,24 +131,25 @@ class ScoringListener(ChatListener):
             self.processor.apply_chat_template(cfpm)
             for cfpm in counterfactual_prompt_messages
         ]
+        counterfactual_prompt_images = [
+            list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            Image.open(chunk["image_url"]["url"]).convert("RGB")
+                            for chunk in m["content"]
+                            if chunk["type"] == "image_url"
+                        ]
+                        for m in cfpm
+                    ]
+                )
+            )
+            for cfpm in counterfactual_prompt_messages
+        ]
 
         processed_all = self.processor(
             text=formatted_counterfactual_prompt_messages,
-            images=[
-                list(
-                    itertools.chain.from_iterable(
-                        [
-                            [
-                                Image.open(chunk["image_url"]["url"]).convert("RGB")
-                                for chunk in m["content"]
-                                if chunk["type"] == "image_url"
-                            ]
-                            for m in cfpm
-                        ]
-                    )
-                )
-                for cfpm in counterfactual_prompt_messages
-            ],
+            images=counterfactual_prompt_images,
             return_tensors="pt",
         )
 
@@ -162,23 +164,31 @@ class ScoringListener(ChatListener):
         # get the token that scores the options
         option_tokens = processed_all.input_ids[:, option_token_idx]
 
-        scores = dict()
+        # doing this again because the formatted messages are passed by reference
+        # and the image tokens get expanded in the first call to self.processor
+        formatted_counterfactual_prompt_messages = [
+            self.processor.apply_chat_template(cfpm)
+            for cfpm in counterfactual_prompt_messages
+        ]
+        counterfactual_prompt_images = [
+            list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            Image.open(chunk["image_url"]["url"]).convert("RGB")
+                            for chunk in m["content"]
+                            if chunk["type"] == "image_url"
+                        ]
+                        for m in cfpm
+                    ]
+                )
+            )
+            for cfpm in counterfactual_prompt_messages
+        ]
+
         processed_inputs = self.processor(
             text=[formatted_counterfactual_prompt_messages[0]],
-            images=[
-                list(
-                    itertools.chain.from_iterable(
-                        [
-                            [
-                                Image.open(chunk["image_url"]["url"]).convert("RGB")
-                                for chunk in m["content"]
-                                if chunk["type"] == "image_url"
-                            ]
-                            for m in counterfactual_prompt_messages[0]
-                        ]
-                    )
-                )
-            ],
+            images=[counterfactual_prompt_images[0]],
             return_tensors="pt",
         )
 
