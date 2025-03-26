@@ -1,25 +1,19 @@
 from typing import Any, Union
+import torch
 from transformers import (
     PixtralProcessor,
     Idefics3Processor,
+    Qwen2_5_VLProcessor,
     DataCollatorForLanguageModeling,
 )
 from accelerate import Accelerator
-from transformers.models.pixtral.processing_pixtral import BatchMixFeature
 from transformers.feature_extraction_utils import BatchFeature
 from game import RepeatedReferenceGame, Trial
 import itertools
 from PIL import Image
 import numpy as np
-
-
-def get_chat_template_features(processor):
-    if isinstance(processor, PixtralProcessor):
-        return "[/INST]", "[INST]"
-    elif isinstance(processor, Idefics3Processor):
-        return "Assistant:", "User:"
-    else:
-        raise ValueError(f"Unsupported processor type: {type(processor)}")
+import warnings
+from training.model_constants import get_chat_template_features, get_image_sizes_field
 
 
 class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
@@ -46,7 +40,7 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
             )
         else:
             # The user already provides the token ids
-            self.instruction_token_ids = instruction_template
+            self.instruction_token_ids = self.instruction_template
 
         if isinstance(self.response_template, str):
             # The user provides a string, must tokenize
@@ -55,7 +49,7 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
             )
         else:
             # The user already provides the token ids
-            self.response_token_ids = response_template
+            self.response_token_ids = self.response_template
 
         self.ignore_index = ignore_index
         self.padding_free = padding_free
@@ -205,93 +199,45 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
             batch["labels"] = batch["labels"][attn_mask.bool()].unsqueeze(0)
             batch["labels"][batch["position_ids"] == 0] = self.ignore_index
 
-        # if Accelerator().is_main_process:
-        #     import ipdb
+        return batch
 
-        #     ipdb.set_trace()
-
-        # Accelerator().wait_for_everyone()
-        if isinstance(self.agent.processor, PixtralProcessor):
-            return BatchMixFeature(
-                data={
-                    **batch
-                    # .pop("pixel_values"),
-                    # "pixel_values": [x["pixel_values"] for x in examples],
-                }
-            )
-        else:
-            return batch
-
-    def __call__(self, batch):
-        games = [RepeatedReferenceGame.model_validate(g) for g in batch]
-        game_messages = [self.agent.construct_prompt_messages(game) for game in games]
-        message_texts = [
-            self.agent.processor.apply_chat_template(m) for m, _ in game_messages
-        ]
-        message_images = [
-            list(
-                itertools.chain.from_iterable(
-                    [
-                        [
-                            Image.open(f'{chunk["image_url"]["url"]}').convert("RGB")
-                            for chunk in m["content"]
-                            if chunk["type"] == "image_url"
-                        ]
-                        for m in messages
-                    ]
-                )
-            )
-            for messages, _ in game_messages
+    def __call__(self, examples):
+        image_sizes_field = get_image_sizes_field(self.agent.processor)
+        collator_input = [
+            {
+                k: v[0]
+                for k, v in x.items()
+                if not k in ["pixel_values", image_sizes_field]
+            }
+            for x in examples
         ]
 
-        processed = self.agent.processor(
-            text=message_texts, images=message_images, return_tensors="pt", padding=True
+        padded = self.agent.processor.tokenizer.pad(collator_input, return_tensors="pt")
+
+        batch = self.torch_call(padded)
+
+        image_sizes = list(
+            itertools.chain.from_iterable([x[image_sizes_field] for x in examples])
         )
 
-        collated_batch = self.torch_call(processed)
-
-        return collated_batch
-
-
-if __name__ == "__main__":
-    from transformers import AutoProcessor, AutoModelForVision2Seq
-    from datasets import load_dataset
-    from agents import GenerateSpeaker
-    from torch.utils.data import DataLoader
-    from tqdm import tqdm
-    import torch
-
-    processor = AutoProcessor.from_pretrained("saujasv/Idefics3-8B-Llama3")
-    processor.image_processor.do_image_splitting = False
-    model = AutoModelForVision2Seq.from_pretrained(
-        "saujasv/Idefics3-8B-Llama3",
-        trust_remote_code=True,
-        torch_dtype="bfloat16",
-        device_map="auto",
-        attn_implementation="flash_attention_2",
-    )
-
-    agent = GenerateSpeaker(
-        None,
-        processor,
-        image_base_path="square-black-imgs/",
-        context_presentation="last_shuffle",
-    )
-
-    dataset = load_dataset(
-        "json",
-        data_files="/data/tir/projects/tir3/users/svadugur/tangrams/base_model_training_games/n=100_incremental_num_referents=5_num_trials=25_min_parts=0_max_parts=0.jsonl",
-    )
-
-    collator = RepeatedReferenceGameCollator(agent, mask_only_last=False)
-    dataloader = DataLoader(
-        dataset["train"], batch_size=1, collate_fn=collator, shuffle=False
-    )
-
-    with torch.no_grad():
-        for batch in tqdm(dataloader):
-            outputs = model(**batch.to(model.device, model.dtype))
-
-    import ipdb
-
-    ipdb.set_trace()
+        return BatchFeature(
+            data={
+                **batch,
+                "pixel_values": torch.tensor(
+                    list(
+                        itertools.chain.from_iterable(
+                            [x["pixel_values"] for x in examples]
+                        )
+                    ),
+                    dtype=torch.float32,
+                ),
+                image_sizes_field: (
+                    torch.tensor(
+                        image_sizes,
+                        dtype=torch.int64,
+                    )
+                    if image_sizes_field == "image_grid_thw"
+                    else image_sizes
+                ),
+            }
+        )

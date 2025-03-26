@@ -23,12 +23,14 @@ class GenerateSpeaker(ChatSpeaker):
         feedback_label=False,
         prompt_type="standard",
         use_length_token=False,
+        tangrams=True,
     ):
         ChatSpeaker.__init__(
             self,
             context_presentation=context_presentation,
             feedback_label=feedback_label,
             prompt_type=prompt_type,
+            tangrams=tangrams,
         )
 
         self.model = model

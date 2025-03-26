@@ -6,8 +6,10 @@ from .chat_agent import ChatAgent
 
 
 class ChatListener(ChatAgent):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tangrams=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.tangrams = tangrams
 
     def get_label(self, context: Tuple[str], item: str):
         if item is None:
