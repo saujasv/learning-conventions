@@ -7,7 +7,7 @@ from .chat_agent import ChatAgent
 
 
 class ChatSpeaker(ChatAgent):
-    def __init__(self, prompt_type: str = "standard", *args, **kwargs):
+    def __init__(self, prompt_type: str = "standard", tangrams=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         assert prompt_type in [
@@ -15,6 +15,7 @@ class ChatSpeaker(ChatAgent):
             "explicit",
         ], f"Invalid prompt type {prompt_type}"
         self.prompt_type = prompt_type
+        self.tangrams = tangrams
 
     def get_label(self, context: Tuple[str], item: str):
         if item is None:
@@ -34,7 +35,14 @@ class ChatSpeaker(ChatAgent):
                 "content": [
                     {
                         "type": "text",
-                        "text": "You are an assistant who will play a series of reference games with the user. You will generate a message referring to one of the images. The user will guess which image you are referring to. The images are of tangram shapes. Try to avoid referring to specific pieces of the tangram. Try to describe the shape as a whole. Feel free to use the resemblance to any real-world objects, and parts of those real world objects to describe the image.",
+                        "text": (
+                            "You are an assistant who will play a series of reference games with the user. You will generate a message referring to one of the images. The user will guess which image you are referring to."
+                            + (
+                                "The images are of tangram shapes. Try to avoid referring to specific pieces of the tangram. Try to describe the shape as a whole. Feel free to use the resemblance to any real-world objects, and parts of those real world objects to describe the image."
+                                if self.tangrams
+                                else ""
+                            )
+                        ),
                     }
                 ],
             },
