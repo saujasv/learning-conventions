@@ -522,6 +522,8 @@ def run_reference_game(
     game_manager._ensure_current_trial_exists()
     game_manager.generate_message_for_current_trial()
 
+    ui.display()
+
     return game, game_manager, ui
 
 
