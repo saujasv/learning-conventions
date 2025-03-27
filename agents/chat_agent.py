@@ -1,5 +1,6 @@
 import itertools
 import random
+from pathlib import Path
 
 
 class ChatAgent:
@@ -14,6 +15,7 @@ class ChatAgent:
             "once",  # present context once at the beginning of the game
             "no_history",  # do not present any prior trials
             "last_shuffle",  # present the images once upfront and shuffle the images only for the last trial
+            "last_no_shuffle",  # present the images once upfront and do not shuffle the images for the last trial
             "trial_shuffle",  # shuffle the images and present them for each trial
             "block_shuffle",  # shuffle the images and present them at the beginning of each block
         ]
@@ -99,6 +101,41 @@ class ChatAgent:
             last_trial_context = random.sample(
                 repeated_reference_game.context, len(repeated_reference_game.context)
             )
+            last_trial_messages = self.format_trial(
+                last_trial,
+                last_trial_context,
+                show_images=True,
+                trial_number=len(repeated_reference_game.trials),
+                exclude_feedback=exclude_feedback_on_last,
+            )
+            messages = [
+                *intro,
+                *itertools.chain.from_iterable(trial_messages),
+                *last_trial_messages,
+            ]
+            return self.collapse_turns(messages), last_trial_context
+        elif self.context_presentation == "last_no_shuffle":
+            if random_seed:
+                random.seed(random_seed)
+
+            trial_messages = list()
+            show_images = True
+            for i, trial in enumerate(repeated_reference_game.trials[:-1]):
+                messages = self.format_trial(
+                    trial,
+                    repeated_reference_game.context,
+                    show_images=show_images,
+                    trial_number=i + 1,
+                    exclude_feedback=False,
+                )
+                if len(messages) > 0:
+                    trial_messages.append(messages)
+                    show_images = False
+                else:
+                    continue
+
+            last_trial = repeated_reference_game.trials[-1]
+            last_trial_context = repeated_reference_game.context
             last_trial_messages = self.format_trial(
                 last_trial,
                 last_trial_context,
