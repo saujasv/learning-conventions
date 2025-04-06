@@ -20,6 +20,8 @@ def get_lora_target_modules(model_config, lora_targets):
             return r"(language_model|multi_modal_projector).*(linear_1|linear_2|down_proj|gate_proj|up_proj|q_proj|k_proj|v_proj|o_proj).*$"
         else:
             raise ValueError("Text LoRA not supported for this model")
+    else:
+        return lora_targets
 
 
 def get_chat_template_features(processor):

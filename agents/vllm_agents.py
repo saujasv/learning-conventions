@@ -7,7 +7,7 @@ from vllm.entrypoints.chat_utils import apply_hf_chat_template, parse_chat_messa
 from vllm.inputs import TokensPrompt
 from .chat_listener import ChatListener
 from .chat_speaker import ChatSpeaker
-from .utils import CHAT_TEMPLATE
+from .utils import CHAT_TEMPLATE, QWEN_CHAT_TEMPLATE
 from pathlib import Path
 from game import RepeatedReferenceGame, Trial
 
@@ -77,7 +77,11 @@ class vLLMSpeaker(vLLMAgent, ChatSpeaker):
             sampling_params=SamplingParams(
                 **{**self.generation_config, "n": num_return_sequences}
             ),
-            chat_template=CHAT_TEMPLATE,
+            chat_template=(
+                QWEN_CHAT_TEMPLATE
+                if "qwen" in self.llm.llm_engine.get_model_config().model.lower()
+                else CHAT_TEMPLATE
+            ),
             chat_template_content_format="string",
             use_tqdm=False,
         )
@@ -155,7 +159,11 @@ class vLLMListener(vLLMAgent, ChatListener):
                 self.llm.get_tokenizer(),
                 trust_remote_code=self.llm.llm_engine.get_model_config().trust_remote_code,
                 conversation=conversation,
-                chat_template=CHAT_TEMPLATE,
+                chat_template=(
+                    QWEN_CHAT_TEMPLATE
+                    if "qwen" in self.llm.llm_engine.get_model_config().model.lower()
+                    else CHAT_TEMPLATE
+                ),
                 add_generation_prompt=True,
                 continue_final_message=False,
             )

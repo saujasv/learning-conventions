@@ -24,6 +24,7 @@ class GenerateSpeaker(ChatSpeaker):
         prompt_type="standard",
         use_length_token=False,
         tangrams=True,
+        max_image_size=None,
     ):
         ChatSpeaker.__init__(
             self,
@@ -37,6 +38,7 @@ class GenerateSpeaker(ChatSpeaker):
         self.processor = processor
         self.image_base_path = image_base_path
         self.use_length_token = use_length_token
+        self.max_image_size = max_image_size
 
         self.generation_config = {
             "max_new_tokens": 64,
@@ -46,25 +48,7 @@ class GenerateSpeaker(ChatSpeaker):
             "stop_strings": ["\n"],
         }
 
-        self.inference_strategy = "sampling"
-
         if generation_config is not None:
-            self.inference_strategy = generation_config.pop(
-                "inference_strategy", "sampling"
-            )
-            if self.inference_strategy == "fire":
-                self.fire_temperature = generation_config.pop("fire_temperature", 2.0)
-                self.fire_standard_temperature = generation_config.pop(
-                    "fire_standard_temperature", 0.3
-                )
-            elif self.inference_strategy == "temperature_decay":
-                self.temperature_decay_scale = generation_config.pop(
-                    "temperature_decay_scale", 2.0
-                )
-                self.temperature_decay_target = generation_config.pop(
-                    "temperature_decay_target", 0.3
-                )
-
             self.generation_config.update(generation_config)
 
         self.text_only_assistant = False
@@ -113,6 +97,11 @@ class GenerateSpeaker(ChatSpeaker):
                     for _ in range(num_return_sequences)
                 ],
                 return_tensors="pt",
+                size=(
+                    {"longest_edge": self.max_image_size}
+                    if self.max_image_size
+                    else None
+                ),
             )
         else:
             processed = self.processor(
@@ -132,6 +121,11 @@ class GenerateSpeaker(ChatSpeaker):
                     )
                 ],
                 return_tensors="pt",
+                size=(
+                    {"longest_edge": self.max_image_size}
+                    if self.max_image_size
+                    else None
+                ),
             )
 
         if self.inference_strategy == "sampling":

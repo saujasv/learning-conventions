@@ -5,6 +5,7 @@ import json
 import jsonlines
 from game import RepeatedReferenceGame, Trial
 from tqdm import tqdm
+from pathlib import Path
 
 ABLATION_PROBABILITIES = [
     0.2,
@@ -37,8 +38,10 @@ def ablate_description(description, p):
 
 
 def simulate_sampling(
+    speaker_type="vllm",
     speaker_model_name_or_path="mistral-community/pixtral-12b",
     speaker_tensor_parallel_size=2,
+    listener_type="vllm",
     listener_model_name_or_path=None,
     listener_tensor_parallel_size=1,
     image_base_path="/data/tir/projects/tir1/corpora/MSCOCO/images",
@@ -47,6 +50,7 @@ def simulate_sampling(
     tangrams=False,
     num_samples=8,
     save_path="test.jsonl",
+    listener_context_presentation="last_shuffle",
 ):
     if speaker_sampling_method == "top_p":
         speaker_generation_config = {
@@ -63,141 +67,221 @@ def simulate_sampling(
             "stop": ["\n"],
         }
 
-    llm = LLM(
-        speaker_model_name_or_path,
-        tensor_parallel_size=speaker_tensor_parallel_size,
-        gpu_memory_utilization=0.95,
-        limit_mm_per_prompt={"image": 256},
-        max_model_len=16384,
-    )
-    speaker = vLLMSpeaker(
-        llm,
-        image_base_path=image_base_path,
-        context_presentation="last_no_shuffle",
-        feedback_label=True,
-        generation_config=speaker_generation_config,
-        tangrams=tangrams,
-    )
-
-    if listener_model_name_or_path:
-        listener_llm = LLM(
-            listener_model_name_or_path,
-            tensor_parallel_size=listener_tensor_parallel_size,
+    if speaker_type == "vllm":
+        llm = LLM(
+            speaker_model_name_or_path,
+            tensor_parallel_size=speaker_tensor_parallel_size,
             gpu_memory_utilization=0.95,
-            limit_mm_per_prompt={"image": 256},
+            limit_mm_per_prompt={"image": 32},
             max_model_len=16384,
+            # enforce_eager=True,
         )
-        listener = vLLMListener(
-            listener_llm,
-            image_base_path=image_base_path,
-            context_presentation="last_shuffle",
-            feedback_label=True,
-            generation_config=None,
-            tangrams=tangrams,
-        )
-    else:
-        listener = vLLMListener(
+        speaker = vLLMSpeaker(
             llm,
             image_base_path=image_base_path,
-            context_presentation="last_shuffle",
+            context_presentation="last_no_shuffle",
             feedback_label=True,
-            generation_config=None,
+            generation_config=speaker_generation_config,
             tangrams=tangrams,
         )
+    elif speaker_type == "replay":
+        speaker = dict()
+        with jsonlines.open(speaker_model_name_or_path) as reader:
+            for x in reader:
+                speaker[(x["gameid"], x["trial_idx"])] = {
+                    "sampled_descriptions": x["sampled_descriptions"],
+                    "ablated_descriptions": x["ablated_descriptions"],
+                    "target": x["target"],
+                }
+
+    if listener_type == "vllm":
+        if listener_model_name_or_path:
+            listener_llm = LLM(
+                listener_model_name_or_path,
+                tensor_parallel_size=listener_tensor_parallel_size,
+                gpu_memory_utilization=0.95,
+                limit_mm_per_prompt={"image": 32},
+                max_model_len=16384,
+                # enforce_eager=True,
+            )
+            listener = vLLMListener(
+                listener_llm,
+                image_base_path=image_base_path,
+                context_presentation=listener_context_presentation,
+                feedback_label=True,
+                generation_config=None,
+                tangrams=tangrams,
+            )
+        else:
+            listener = vLLMListener(
+                llm,
+                image_base_path=image_base_path,
+                context_presentation=listener_context_presentation,
+                feedback_label=True,
+                generation_config=None,
+                tangrams=tangrams,
+            )
 
     with open(games_path) as f:
         games = {
             k: RepeatedReferenceGame.model_validate(v) for k, v in json.load(f).items()
         }
 
-    record = list()
+    if Path(save_path).exists():
+        with jsonlines.open(save_path) as reader:
+            record = list(reader)
+    else:
+        record = list()
+
+    completed_trials = [(r["gameid"], r["trial_idx"]) for r in record]
+    print(f"Completed trials: {completed_trials}")
 
     for gameid, game in games.items():
         sampled_prior_trials = list()
         tiled_prior_trials = list()
         first_description_map = dict()
         for trial_idx, trial in enumerate(tqdm(game.trials)):
-            sampled_descriptions = speaker.generate(
-                RepeatedReferenceGame(
-                    context=game.context,
-                    trials=[*sampled_prior_trials, Trial(target=trial.target)],
-                ),
-                num_return_sequences=num_samples,
-            )
+            if (gameid, trial_idx) in completed_trials:
+                continue
 
-            sampled_descriptions_interpretations = listener.score(
-                [
+            if speaker_type == "replay":
+                assert (
+                    speaker[(gameid, trial_idx)]["target"] == trial.target
+                ), "Targets do not match"
+                sampled_descriptions = speaker[(gameid, trial_idx)][
+                    "sampled_descriptions"
+                ]
+            else:
+                sampled_descriptions = speaker.generate(
                     RepeatedReferenceGame(
                         context=game.context,
-                        trials=[
-                            *sampled_prior_trials,
-                            Trial(target=trial.target, message=d),
-                        ],
-                    )
+                        trials=[*sampled_prior_trials, Trial(target=trial.target)],
+                    ),
+                    num_return_sequences=num_samples,
+                )
+
+            if listener_type == "vllm":
+                sampled_descriptions_interpretations = listener.score(
+                    [
+                        RepeatedReferenceGame(
+                            context=game.context,
+                            trials=[
+                                *sampled_prior_trials,
+                                Trial(target=trial.target, message=d),
+                            ],
+                        )
+                        for d in sampled_descriptions
+                    ]
+                )
+                if len(sampled_descriptions) == 1:
+                    sampled_descriptions_interpretations = [
+                        sampled_descriptions_interpretations
+                    ]
+
+                sampled_descriptions_interpretations_no_context = listener.score(
+                    [
+                        RepeatedReferenceGame(
+                            context=game.context,
+                            trials=[Trial(target=trial.target, message=d)],
+                        )
+                        for d in sampled_descriptions
+                    ]
+                )
+                if len(sampled_descriptions) == 1:
+                    sampled_descriptions_interpretations_no_context = [
+                        sampled_descriptions_interpretations_no_context
+                    ]
+                selected_description = sampled_descriptions[0]
+                for desc, interp in zip(
+                    sampled_descriptions, sampled_descriptions_interpretations
+                ):
+                    if max(interp, key=interp.get) == trial.target:
+                        selected_description = desc
+                        break
+            else:
+                sampled_descriptions_interpretations = [
+                    {x: 0 if x == trial.target else None for x in game.context}
                     for d in sampled_descriptions
                 ]
-            )
 
-            sampled_descriptions_interpretations_no_context = listener.score(
-                [
-                    RepeatedReferenceGame(
-                        context=game.context,
-                        trials=[Trial(target=trial.target, message=d)],
-                    )
+                sampled_descriptions_interpretations_no_context = [
+                    {x: 0 if x == trial.target else None for x in game.context}
                     for d in sampled_descriptions
                 ]
-            )
-
-            selected_description = sampled_descriptions[0]
-            for desc, interp in zip(
-                sampled_descriptions, sampled_descriptions_interpretations
-            ):
-                if max(interp, key=interp.get) == trial.target:
-                    selected_description = desc
-                    break
 
             if not trial.target in first_description_map:
                 first_description_map[trial.target] = selected_description
 
-            tiled_description_interpretations = listener.score(
-                [
-                    RepeatedReferenceGame(
-                        context=game.context,
-                        trials=[
-                            *tiled_prior_trials,
-                            Trial(target=trial.target, message=selected_description),
-                        ],
-                    )
+            if listener_type == "vllm":
+                tiled_description_interpretations = listener.score(
+                    [
+                        RepeatedReferenceGame(
+                            context=game.context,
+                            trials=[
+                                *tiled_prior_trials,
+                                Trial(
+                                    target=trial.target, message=selected_description
+                                ),
+                            ],
+                        )
+                    ]
+                )
+            else:
+                tiled_description_interpretations = [
+                    {x: 0 if x == trial.target else None for x in game.context}
                 ]
-            )
 
-            ablated_descriptions = [
-                ablate_description(selected_description, p)
-                for p in ABLATION_PROBABILITIES[:num_samples]
-            ]
+            if speaker_type == "replay":
+                ablated_descriptions = speaker[(gameid, trial_idx)][
+                    "ablated_descriptions"
+                ]
+            else:
+                ablated_descriptions = [
+                    ablate_description(selected_description, p)
+                    for p in ABLATION_PROBABILITIES[:num_samples]
+                ]
 
-            ablated_descriptions_interpretations = listener.score(
-                [
-                    RepeatedReferenceGame(
-                        context=game.context,
-                        trials=[
-                            *sampled_prior_trials,
-                            Trial(target=trial.target, message=d),
-                        ],
-                    )
+            if listener_type == "vllm":
+                ablated_descriptions_interpretations = listener.score(
+                    [
+                        RepeatedReferenceGame(
+                            context=game.context,
+                            trials=[
+                                *sampled_prior_trials,
+                                Trial(target=trial.target, message=d),
+                            ],
+                        )
+                        for d in ablated_descriptions
+                    ]
+                )
+                if len(ablated_descriptions) == 1:
+                    ablated_descriptions_interpretations = [
+                        ablated_descriptions_interpretations
+                    ]
+
+                ablated_descriptions_interpretations_no_context = listener.score(
+                    [
+                        RepeatedReferenceGame(
+                            context=game.context,
+                            trials=[Trial(target=trial.target, message=d)],
+                        )
+                        for d in ablated_descriptions
+                    ]
+                )
+                if len(ablated_descriptions) == 1:
+                    ablated_descriptions_interpretations_no_context = [
+                        ablated_descriptions_interpretations_no_context
+                    ]
+            else:
+                ablated_descriptions_interpretations = [
+                    {x: 0 if x == trial.target else None for x in game.context}
                     for d in ablated_descriptions
                 ]
-            )
 
-            ablated_descriptions_interpretations_no_context = listener.score(
-                [
-                    RepeatedReferenceGame(
-                        context=game.context,
-                        trials=[Trial(target=trial.target, message=d)],
-                    )
+                ablated_descriptions_interpretations_no_context = [
+                    {x: 0 if x == trial.target else None for x in game.context}
                     for d in ablated_descriptions
                 ]
-            )
 
             sampled_prior_trials.append(
                 Trial(

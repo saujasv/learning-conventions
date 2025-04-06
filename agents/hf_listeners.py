@@ -18,6 +18,7 @@ class GenerateListener(ChatListener):
         image_base_path: str = "",
         context_presentation="block_shuffle",
         feedback_label=False,
+        max_image_size=None,
     ):
         ChatListener.__init__(
             self,
@@ -28,6 +29,7 @@ class GenerateListener(ChatListener):
         self.processor = processor
         self.image_base_path = image_base_path
         self.text_only_assistant = False
+        self.max_image_size = max_image_size
 
     def select(self, repeated_reference_game):
         if repeated_reference_game.trials[-1].message is None:
@@ -54,6 +56,7 @@ class GenerateListener(ChatListener):
                 )
             ),
             return_tensors="pt",
+            size={"longest_edge": self.max_image_size} if self.max_image_size else None,
         )
 
         outputs = self.model.generate(
@@ -151,6 +154,7 @@ class ScoringListener(ChatListener):
             text=formatted_counterfactual_prompt_messages,
             images=counterfactual_prompt_images,
             return_tensors="pt",
+            size={"longest_edge": self.max_image_size} if self.max_image_size else None,
         )
 
         # get identify the longest prefix that's common to the different perturbed prompts
@@ -190,6 +194,7 @@ class ScoringListener(ChatListener):
             text=[formatted_counterfactual_prompt_messages[0]],
             images=[counterfactual_prompt_images[0]],
             return_tensors="pt",
+            size={"longest_edge": self.max_image_size} if self.max_image_size else None,
         )
 
         outputs = self.model(

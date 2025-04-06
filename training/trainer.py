@@ -115,7 +115,10 @@ def train(
             feedback_label=bool(kwargs.get("--feedback_label", "false")),
         )
 
-    collator = RepeatedReferenceGameCollator(agent)
+    max_image_size = kwargs.get("--max_image_size", None)
+    collator = RepeatedReferenceGameCollator(
+        agent, max_image_size=int(max_image_size) if max_image_size else None
+    )
 
     dataset = load_dataset(
         "json",
