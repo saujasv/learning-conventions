@@ -125,12 +125,6 @@ def train(
         },
     )
 
-    dataset = dataset.map(
-        lambda x: prepare_game(x, agent),
-        remove_columns=["context", "trials"],
-        writer_batch_size=50,
-    )
-
     ################
     # Training
     ################
