@@ -24,6 +24,7 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
         ignore_index=-100,
         padding_free=False,
         padding_side="left",
+        max_image_size=None,
     ):
         super().__init__(
             tokenizer=agent.processor.tokenizer,
@@ -56,6 +57,7 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
         self.agent = agent
         self.mask_only_last = mask_only_last
         self.padding_side = padding_side
+        self.max_image_size = max_image_size
 
     def torch_call(
         self, examples: list[Union[list[int], Any, dict[str, Any]]]
@@ -228,6 +230,7 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
             images=messages_images,
             return_tensors="pt",
             padding=True,
+            size={"longest_edge": self.max_image_size} if self.max_image_size else None,
         )
 
         return self.torch_call(processed)

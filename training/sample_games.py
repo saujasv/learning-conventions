@@ -16,7 +16,7 @@ def sample_context(pool, num_items, sampling_algorithm="uniform", **kwargs):
 
 def sample_kilogram_description(annotations, min_parts=0, max_parts=0):
     sampled_annotation = random.choice(annotations)
-    last_word = sampled_annotation["whole"]["wholeAnnotation"].split(" ")[-1]
+    last_word = sampled_annotation["whole"]["wholeAnnotation"].strip().split(" ")[-1]
     if not inflect_engine.singular_noun(last_word):
         whole_description = inflect_engine.a(
             sampled_annotation["whole"]["wholeAnnotation"]
@@ -89,9 +89,9 @@ def sample_game(
                 selection = random.choice(context)
                 trials.append(
                     Trial(
-                        target=f"{target_referent}.png",
+                        target=f"{target_referent}",
                         message=description,
-                        selection=f"{selection}.png",
+                        selection=f"{selection}",
                         correct=target_referent == selection,
                     )
                 )
@@ -108,9 +108,9 @@ def sample_game(
             target_referent = random.choice(context)
 
             if reuse_descriptions and not target_referent in selected_annotations:
-                selected_annotations[target_referent] = [random.choice(
-                    descriptions[target_referent]["annotations"]
-                )]
+                selected_annotations[target_referent] = [
+                    random.choice(descriptions[target_referent]["annotations"])
+                ]
 
             if reuse_descriptions:
                 description = sample_kilogram_description(
@@ -124,14 +124,14 @@ def sample_game(
             selection = target_referent if oracle_listener else random.choice(context)
             trials.append(
                 Trial(
-                    target=f"{target_referent}.png",
+                    target=f"{target_referent}",
                     message=description,
-                    selection=f"{selection}.png",
+                    selection=f"{selection}",
                     correct=target_referent == selection,
                 )
             )
 
-    return RepeatedReferenceGame(context=[f"{c}.png" for c in context], trials=trials)
+    return RepeatedReferenceGame(context=[f"{c}" for c in context], trials=trials)
 
 
 def sample_training_games(
