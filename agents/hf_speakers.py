@@ -128,30 +128,10 @@ class GenerateSpeaker(ChatSpeaker):
                 ),
             )
 
-        if self.inference_strategy == "sampling":
-            logits_processor = None
-        elif self.inference_strategy == "fire":
-            logits_processor = [
-                TopPLogitsWarper(self.generation_config["top_p"]),
-                FIRELogitsWarper(
-                    num_return_sequences=num_return_sequences,
-                    standard_temperature=self.fire_standard_temperature,
-                    fire_temperature=self.fire_temperature,
-                ),
-            ]
-        elif self.inference_strategy == "temperature_decay":
-            logits_processor = [
-                TopPLogitsWarper(self.generation_config["top_p"]),
-                TemperatureDecayLogitsWarper(
-                    self.temperature_decay_scale, self.temperature_decay_target
-                ),
-            ]
-
         outputs = self.model.generate(
             **processed.to(self.model.device, self.model.dtype),
             **self.generation_config,
             tokenizer=self.processor.tokenizer,
-            logits_processor=logits_processor,
             num_return_sequences=num_return_sequences,
         )
 
