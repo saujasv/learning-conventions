@@ -83,6 +83,7 @@ class ScoringListener(ChatListener):
         image_base_path: str = "",
         context_presentation="block_shuffle",
         feedback_label=False,
+        max_image_size=None,
     ):
         ChatListener.__init__(
             self,
@@ -93,6 +94,7 @@ class ScoringListener(ChatListener):
         self.processor = processor
         self.image_base_path = image_base_path
         self.text_only_assistant = False
+        self.max_image_size = max_image_size
 
     @torch.no_grad()
     def score(self, repeated_reference_game):
