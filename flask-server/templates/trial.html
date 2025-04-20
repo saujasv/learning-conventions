@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+{% block content %}
+<div>
+    {% if previous_trials %}
+        <div class="previous-trials">
+            <h3>Previous Rounds ({{ trial_count - 1 }})</h3>
+            <div class="trial-history">
+                {% for trial in previous_trials %}
+                    <div class="history-item {% if trial.correct %}correct{% else %}incorrect{% endif %}">
+                        <div class="history-desc">Description: "{{ trial.message }}"</div>
+                        <div class="history-result">
+                            {% if trial.correct %}
+                                <span class="correct-badge">✓ Correct</span>
+                            {% else %}
+                                <span class="incorrect-badge">✗ Incorrect</span> 
+                                (Selected: {{ trial.selection + 1 }}, Target: {{ trial.target + 1 }})
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <h3>Round {{ trial_count }}: Select the matching image:</h3>
+    <form id="selection-form" action="{{ url_for('submit') }}" method="post">
+        <div class="images-container">
+            {% for image in images %}
+            <div class="image-option" onclick="selectImage({{ loop.index0 }})">
+                <img src="{{ url_for('static', filename=image) }}" alt="Image option {{ loop.index }}">
+                <div style="margin-top: 10px; font-size: 18px; font-weight: bold;">Option {{ loop.index }}</div>
+                <input type="radio" name="selected_image" value="{{ loop.index0 }}" style="display: none;">
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button type="submit" class="btn">Submit Selection</button>
+        </div>
+    </form>
+    
+    <div class="description-box">
+        <h3>Description:</h3>
+        <p>{{ description }}</p>
+    </div>
+    
+    <script>
+        function selectImage(index) {
+            // Clear previous selections
+            document.querySelectorAll('.image-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Mark the selected image
+            document.querySelectorAll('.image-option')[index].classList.add('selected');
+            
+            // Check the corresponding radio button
+            document.querySelectorAll('input[name="selected_image"]')[index].checked = true;
+        }
+    </script>
+</div>
+{% endblock %}

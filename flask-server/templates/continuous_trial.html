@@ -1,0 +1,113 @@
+<!-- templates/continuous_trial.html -->
+{% extends "layout.html" %}
+{% block content %}
+<div>
+    <!-- Feedback from previous trial if it exists -->
+    {% if feedback %}
+    <div class="feedback-box {% if feedback.is_correct %}correct{% else %}incorrect{% endif %}">
+        <div class="feedback-message">
+            {% if feedback.is_correct %}
+                <span class="correct-badge">✓ Correct!</span>
+            {% else %}
+                <span class="incorrect-badge">✗ Incorrect</span>
+                <div class="feedback-detail">You selected Option {{ feedback.selected }}, but the target was Option {{ feedback.target }}.</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Stats summary if we have previous trials -->
+    {% if previous_trials %}
+    <div class="stats-summary">
+        <div>Round {{ trial_count }} of this interaction</div>
+        {% if feedback %}
+        <div>Accuracy: {{ feedback.accuracy }}%</div>
+        {% endif %}
+        <div class="navigation-links">
+            {% if previous_trials|length >= 1 %}
+            <a href="{{ url_for('go_back') }}" class="text-button">Go back one step</a> |
+            {% endif %}
+            <a href="{{ url_for('trial') }}" class="text-button">Start new context</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="description-box">
+        <h3>Description:</h3>
+        <p>{{ description }}</p>
+    </div>
+
+    <!-- Current trial interface -->
+    <h3>Select the matching image:</h3>
+    <form id="selection-form" action="{{ url_for('submit') }}" method="post">
+        <div class="images-container">
+            {% for image in images %}
+            <div class="image-option" onclick="selectImage({{ loop.index0 }})">
+                <div style="margin-top: 8px; font-size: 16px; font-weight: bold;">Option {{ labels[loop.index0] }}</div>
+                <img src="{{ url_for('static', filename=image) }}" alt="Image option {{ loop.index }}">
+                <input type="radio" name="selected_image" value="{{ image }}" style="display: none;">
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button type="submit" class="btn">Submit Selection</button>
+        </div>
+    </form>
+    
+    <!-- Previous trials history (collapsed by default) -->
+    {% if previous_trials %}
+    <div class="history-container">
+        <button onclick="toggleHistory()" class="toggle-history-btn">
+            <span id="toggle-text">Show Previous Rounds</span> <span id="toggle-icon">▼</span>
+        </button>
+        <div id="trial-history" class="trial-history" style="display: block;">
+            {% for trial in previous_trials %}
+                <div class="history-item {% if trial.correct %}correct{% else %}incorrect{% endif %}">
+                    <div class="history-desc">Round {{ loop.index }}: "{{ trial.message }}"</div>
+                    <div class="history-result">
+                        {% if trial.correct %}
+                            <span class="correct-badge">✓ Correct</span>
+                        {% else %}
+                            <span class="incorrect-badge">✗ Incorrect</span> 
+                            (Selected: {{ trial.selection }}, Target: {{ trial.target }})
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <script>
+        function selectImage(index) {
+            // Clear previous selections
+            document.querySelectorAll('.image-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Mark the selected image
+            document.querySelectorAll('.image-option')[index].classList.add('selected');
+            
+            // Check the corresponding radio button
+            document.querySelectorAll('input[name="selected_image"]')[index].checked = true;
+        }
+        
+        function toggleHistory() {
+            const history = document.getElementById('trial-history');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleIcon = document.getElementById('toggle-icon');
+            
+            if (history.style.display === 'none') {
+                history.style.display = 'block';
+                toggleText.textContent = 'Hide Previous Rounds';
+                toggleIcon.textContent = '▲';
+            } else {
+                history.style.display = 'none';
+                toggleText.textContent = 'Show Previous Rounds';
+                toggleIcon.textContent = '▼';
+            }
+        }
+    </script>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block content %}
+<div>
+    <h2>Round {{ trial_count }} Result</h2>
+    
+    {% if is_correct %}
+        <div style="color: green; font-size: 24px;">Correct! ✅</div>
+    {% else %}
+        <div style="color: red; font-size: 24px;">Incorrect ❌</div>
+        <p>You selected image #{{ selected_index + 1 }}, but the target was image #{{ target_index + 1 }}.</p>
+    {% endif %}
+    
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('trial', parent_id=trial_id) }}" class="btn">Continue with Same Context</a>
+        <a href="{{ url_for('trial') }}" class="btn" style="margin-left: 10px; background-color: #666;">Start New Context</a>
+        <a href="{{ url_for('index') }}" class="btn" style="margin-left: 10px; background-color: #666;">Return Home</a>
+    </div>
+    
+    {% if trial_chain %}
+    <div class="trial-history-summary" style="margin-top: 30px;">
+        <h3>Interaction Summary</h3>
+        <div class="history-stats">
+            <p>Total rounds: {{ trial_count }}</p>
+            {% set correct_count = trial_chain|selectattr('correct', 'eq', true)|list|length %}
+            <p>Correct answers: {{ correct_count }} ({{ (correct_count / trial_count * 100)|round(1) }}%)</p>
+        </div>
+        
+        <div class="previous-trials">
+            <h4>All Rounds</h4>
+            <div class="trial-history">
+                {% for trial in trial_chain %}
+                    <div class="history-item {% if trial.correct %}correct{% else %}incorrect{% endif %}">
+                        <div class="history-desc">Round {{ loop.index }}: "{{ trial.message }}"</div>
+                        <div class="history-result">
+                            {% if trial.correct %}
+                                <span class="correct-badge">✓ Correct</span>
+                            {% else %}
+                                <span class="incorrect-badge">✗ Incorrect</span> 
+                                (Selected: {{ trial.selection + 1 }}, Target: {{ trial.target + 1 }})
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
