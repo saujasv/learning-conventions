@@ -9,7 +9,6 @@ from pathlib import Path
 from game import RepeatedReferenceGame, Trial
 from .chat_listener import ChatListener
 from .hf_listeners import ScoringListener
-from .hf_speakers import ScoringSpeaker
 
 
 class JointInferenceListener:

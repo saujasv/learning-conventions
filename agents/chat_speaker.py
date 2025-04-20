@@ -4,18 +4,21 @@ import random
 from pathlib import Path
 from game import RepeatedReferenceGame, Trial
 from .chat_agent import ChatAgent
+from .prompts import SPEAKER_SYSTEM_PROMPT_STANDARD, SPEAKER_USER_PROMPT_PHOTOGRAPHS
 
 
 class ChatSpeaker(ChatAgent):
-    def __init__(self, prompt_type: str = "standard", tangrams=True, *args, **kwargs):
+    def __init__(
+        self,
+        system_prompt_template=SPEAKER_SYSTEM_PROMPT_STANDARD,
+        user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
 
-        assert prompt_type in [
-            "standard",
-            "explicit",
-        ], f"Invalid prompt type {prompt_type}"
-        self.prompt_type = prompt_type
-        self.tangrams = tangrams
+        self.system_prompt_template = system_prompt_template
+        self.user_prompt = user_prompt
 
     def get_label(self, context: Tuple[str], item: str):
         if item is None:
@@ -24,27 +27,14 @@ class ChatSpeaker(ChatAgent):
             return chr(ord("A") + context.index(item))
 
     def get_intro(self, context: Tuple[str]):
-        if self.prompt_type == "standard":
-            prompt = f"Play a repeated reference game with me and a third player (the listener). You will act as the speaker in the game. This game consists of multiple rounds in which the speaker interacts with me and the listener on the same referential context ({len(context)} images). In each round, I give you one of the {len(context)} images as the target. You should communicate the target to the listener in a message. The listener will try to choose the target correctly based on your message. I will tell you which image the listener chooses. The listener will see the {len(context)} images in a different order every round so you cannot communicate the target simply by using its position or label ({', '.join([chr(ord('A') + i) for i in range(len(context))])}).\n\nYour reply should only contain the message and the message should always be shorter than 20 words. Throughout, your message does not need to be a full sentence."
-        elif self.prompt_type == "explicit":
-            prompt = f"Play a repeated reference game with me and a third player (the listener). You will act as the speaker in the game. This game consists of multiple rounds in which the speaker interacts with me and the listener on the same referential context ({len(context)} images). In each round, I give you one of the {len(context)} images as the target. You should communicate the target to the listener in a message. The listener will try to choose the target correctly based on your message. I will tell you which image the listener chooses. The listener will see the {len(context)} images in a different order every round so you cannot communicate the target simply by using its position or label ({', '.join([chr(ord('A') + i) for i in range(len(context))])}).\n\nYour reply should only contain the message and the message should always be shorter than 20 words. Throughout, your message should not exceed one sentence but it does not need to be a full sentence. Start with more detailed messages to ensure the listener's accuracy. As more rounds are completed and the listener understands you better, gradually condense your messages, making them shorter and shorter every round. When creating a shorter message for an image, try to extract salient tokens from the previous messages for this image rather than introducing new words. The short messages should still allow the listener to choose the target correctly. For each image, when you reach a message you think can not be further shortened without hurting the listener's accuracy, you should keep using that message for the rest of the game."
-
+        prompt = self.system_prompt_template.substitute(
+            num_images=len(context),
+            labels=", ".join([chr(ord("A") + i) for i in range(len(context))]),
+        )
         return [
             {
                 "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": (
-                            "You are an assistant who will play a series of reference games with the user. You will generate a message referring to one of the images. The user will guess which image you are referring to."
-                            + (
-                                "The images are of tangram shapes. Try to avoid referring to specific pieces of the tangram. Try to describe the shape as a whole. Feel free to use the resemblance to any real-world objects, and parts of those real world objects to describe the image."
-                                if self.tangrams
-                                else ""
-                            )
-                        ),
-                    }
-                ],
+                "content": [{"type": "text", "text": self.user_prompt}],
             },
             {
                 "role": "user",

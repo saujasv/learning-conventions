@@ -3,6 +3,7 @@ import itertools
 import random
 from game import RepeatedReferenceGame, Trial
 from .chat_agent import ChatAgent
+from .prompts import LISTENER_SYSTEM_PROMPT, LISTENER_USER_PROMPT
 
 
 class ChatListener(ChatAgent):
@@ -24,7 +25,7 @@ class ChatListener(ChatAgent):
                 "content": [
                     {
                         "type": "text",
-                        "text": "You are an assistant who will play a series of reference games with the user. You will pay close attention to the conversation history as more rounds are played.",
+                        "text": LISTENER_SYSTEM_PROMPT,
                     }
                 ],
             },
@@ -33,7 +34,11 @@ class ChatListener(ChatAgent):
                 "content": [
                     {
                         "type": "text",
-                        "text": f"Play a game with multiple rounds involving the same set of images. In each round, I will refer to one of the images with a message. You will guess which image I am referring to. If present, the history of previous rounds may help you better understand how I refer to specific images. In each round, answer with the image's label, i.e. one of [{', '.join([chr(i + ord('A')) for i, _ in enumerate(context)])}]. You should still make a guess even when you are not sure. Do not output anything other than the image label you guess.",
+                        "text": LISTENER_USER_PROMPT.substitute(
+                            labels=", ".join(
+                                [chr(i + ord("A")) for i, _ in enumerate(context)]
+                            )
+                        ),
                     }
                 ],
             },

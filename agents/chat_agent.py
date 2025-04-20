@@ -33,7 +33,11 @@ class ChatAgent:
         )
 
     def construct_prompt_messages(
-        self, repeated_reference_game, exclude_feedback_on_last=False, random_seed=None
+        self,
+        repeated_reference_game,
+        exclude_feedback_on_last=False,
+        random_seed=None,
+        message_length=20,
     ):
         intro = self.get_intro(repeated_reference_game.context)
         if self.context_presentation == "no_history":
