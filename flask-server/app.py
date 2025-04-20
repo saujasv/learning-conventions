@@ -28,6 +28,13 @@ IMAGES_KEY = "coco-images"
 IMAGES_DIR = os.path.join(STATIC_FOLDER, IMAGES_KEY)
 RESULTS_FILE = "trials.jsonl"
 TASKS_FILE = os.environ.get("TASKS_PATH", "tasks.jsonl")
+PROMPT_TYPE = os.environ.get("PROMPT_TYPE")
+PROMPT = (
+    SPEAKER_SYSTEM_PROMPT_EXPLICIT
+    if os.environ.get("PROMPT_TYPE", "explicit")
+    else SPEAKER_SYSTEM_PROMPT_STANDARD
+)
+print(PROMPT)
 SPEAKER = OpenAIAPISpeaker(
     "gpt-4.1",
     None,
@@ -36,11 +43,7 @@ SPEAKER = OpenAIAPISpeaker(
     "once",
     True,
     {"max_completion_tokens": 128},
-    system_prompt_template=(
-        SPEAKER_SYSTEM_PROMPT_EXPLICIT
-        if os.environ.get("PROMPT_TYPE", "explicit")
-        else SPEAKER_SYSTEM_PROMPT_STANDARD
-    ),
+    system_prompt_template=PROMPT,
 )
 
 
@@ -230,6 +233,7 @@ def submit():
         "message": description,
         "selection": selection,
         "correct": is_correct,
+        "prompt_type": PROMPT_TYPE,
     }
 
     # Append to JSONL file
