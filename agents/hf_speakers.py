@@ -29,8 +29,6 @@ class GenerateSpeaker(ChatSpeaker):
         system_prompt_template=SPEAKER_SYSTEM_PROMPT_STANDARD,
         user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS,
         target_prompt_template=SPEAKER_USER_PROMPT_TARGET,
-        use_length_token=False,
-        tangrams=True,
         max_image_size=None,
         chat_template_file=None,
     ):
@@ -52,7 +50,6 @@ class GenerateSpeaker(ChatSpeaker):
             self.chat_template = None
 
         self.image_base_path = image_base_path
-        self.use_length_token = use_length_token
         self.max_image_size = max_image_size
 
         self.generation_config = {

@@ -18,6 +18,7 @@ class ScoringListener(ChatListener):
         context_presentation="block_shuffle",
         feedback_label=False,
         max_image_size=None,
+        chat_template_file=None,
     ):
         ChatListener.__init__(
             self,
@@ -29,6 +30,10 @@ class ScoringListener(ChatListener):
         self.image_base_path = image_base_path
         self.text_only_assistant = False
         self.max_image_size = max_image_size
+        self.chat_template = None
+        if chat_template_file:
+            with open(chat_template_file, "r") as f:
+                self.chat_template = f.read()
 
     @find_executable_batch_size(starting_batch_size=4)
     def batch_score(batch_size, self, repeated_reference_games, return_logits=False):
@@ -94,7 +99,9 @@ class ScoringListener(ChatListener):
             ), "Contexts for counterfactual games should be the same."
 
             formatted_counterfactual_prompt_messages = [
-                self.processor.apply_chat_template(cfpm)
+                self.processor.apply_chat_template(
+                    cfpm, chat_template=self.chat_template
+                )
                 for cfpm in counterfactual_prompt_messages
             ]
             counterfactual_prompt_images = [
@@ -141,7 +148,9 @@ class ScoringListener(ChatListener):
             # doing this again because the formatted messages are passed by reference
             # and the image tokens get expanded in the first call to self.processor
             formatted_counterfactual_prompt_messages = [
-                self.processor.apply_chat_template(cfpm)
+                self.processor.apply_chat_template(
+                    cfpm, chat_template=self.chat_template
+                )
                 for cfpm in counterfactual_prompt_messages
             ]
             counterfactual_prompt_images = [
