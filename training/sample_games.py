@@ -63,6 +63,13 @@ def sample_kilogram_description(annotations, min_parts=0, max_parts=0):
         return whole_description
 
 
+def add_extension(filename, extension="png"):
+    if "." in filename:
+        return filename
+    else:
+        return filename + "." + extension
+
+
 def sample_game(
     referents_pool,
     descriptions,
@@ -89,9 +96,9 @@ def sample_game(
                 selection = random.choice(context)
                 trials.append(
                     Trial(
-                        target=f"{target_referent}",
+                        target=add_extension(target_referent),
                         message=description,
-                        selection=f"{selection}",
+                        selection=add_extension(selection),
                         correct=target_referent == selection,
                     )
                 )
@@ -124,14 +131,16 @@ def sample_game(
             selection = target_referent if oracle_listener else random.choice(context)
             trials.append(
                 Trial(
-                    target=f"{target_referent}",
+                    target=add_extension(target_referent),
                     message=description,
-                    selection=f"{selection}",
+                    selection=add_extension(selection),
                     correct=target_referent == selection,
                 )
             )
 
-    return RepeatedReferenceGame(context=[f"{c}" for c in context], trials=trials)
+    return RepeatedReferenceGame(
+        context=[add_extension(c) for c in context], trials=trials
+    )
 
 
 def sample_training_games(

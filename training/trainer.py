@@ -5,6 +5,8 @@ from transformers import (
     AutoProcessor,
     Idefics3Processor,
     PixtralProcessor,
+    Gemma3Processor,
+    Gemma3ForConditionalGeneration,
 )
 from datasets import load_dataset
 from game import RepeatedReferenceGame, Trial
@@ -12,27 +14,17 @@ import itertools
 from PIL import Image
 from training.collator import RepeatedReferenceGameCollator
 from training.model_constants import get_lora_target_modules
-from agents import GenerateSpeaker, GenerateListener
+from agents import GenerateSpeaker, ScoringListener
 from pathlib import Path
 
 
 def prepare_game(x, agent):
     game = RepeatedReferenceGame.model_validate(x)
-    game_messages = agent.construct_prompt_messages(game)[0]
-    message_texts = agent.processor.apply_chat_template(game_messages)
-    message_images = list(
-        itertools.chain.from_iterable(
-            [
-                [
-                    Image.open(f'{chunk["image_url"]["url"]}').convert("RGB")
-                    for chunk in m["content"]
-                    if chunk["type"] == "image_url"
-                ]
-                for m in game_messages
-            ]
-        )
+    game_messages, message_image_paths = agent.construct_prompt_messages(game)[0]
+    message_texts = agent.processor.apply_chat_template(
+        game_messages, chat_template=agent.chat_template
     )
-
+    message_images = [Image.open(path) for path in message_image_paths]
     processed = agent.processor(
         text=message_texts, images=message_images, return_tensors="pt"
     )
@@ -79,11 +71,18 @@ def train(
         torch_dtype=torch_dtype,
     )
 
-    model = AutoModelForVision2Seq.from_pretrained(
-        model_config.model_name_or_path,
-        trust_remote_code=model_config.trust_remote_code,
-        **model_kwargs,
-    )
+    if isinstance(processor, Gemma3Processor):
+        model = Gemma3ForConditionalGeneration.from_pretrained(
+            model_config.model_name_or_path,
+            trust_remote_code=model_config.trust_remote_code,
+            **model_kwargs,
+        )
+    else:
+        model = AutoModelForVision2Seq.from_pretrained(
+            model_config.model_name_or_path,
+            trust_remote_code=model_config.trust_remote_code,
+            **model_kwargs,
+        )
 
     print(model.config)
 
@@ -104,15 +103,17 @@ def train(
             image_base_path=kwargs.get("--images_base_path", None),
             context_presentation=kwargs.get("--context_presentation", "last_shuffle"),
             use_length_token=bool(kwargs.get("--use_length_token", "false")),
-            feedback_label=bool(kwargs.get("--feedback_label", "false")),
+            feedback_label=bool(kwargs.get("--feedback_label", "true")),
+            chat_template_file=kwargs.get("--chat_template_file", None),
         )
     elif agent_type == "listener":
-        agent = GenerateListener(
+        agent = ScoringListener(
             None,
             processor,
             image_base_path=kwargs.get("--images_base_path", None),
             context_presentation=kwargs.get("--context_presentation", "last_shuffle"),
-            feedback_label=bool(kwargs.get("--feedback_label", "false")),
+            feedback_label=bool(kwargs.get("--feedback_label", "true")),
+            chat_template_file=kwargs.get("--chat_template_file", None),
         )
 
     max_image_size = kwargs.get("--max_image_size", None)
@@ -126,6 +127,22 @@ def train(
             "train": str(Path(script_args.dataset_name) / "train.jsonl"),
             "validation": str(Path(script_args.dataset_name) / "validation.jsonl"),
         },
+    )
+
+    # dataset = dataset.map(
+    #     lambda x: prepare_game(x, agent),
+    #     remove_columns=["context", "trials"],
+    #     writer_batch_size=10,
+    #     num_proc=16,
+    # )
+
+    dataset = dataset.map(
+        lambda x: {
+            "messages": agent.construct_prompt_messages(
+                RepeatedReferenceGame.model_validate(x)
+            )[0]
+        },
+        remove_columns=["context", "trials"],
     )
 
     ################
