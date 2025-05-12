@@ -9,7 +9,7 @@ from pathlib import Path
 from game import RepeatedReferenceGame, Trial
 from .chat_listener import ChatListener
 from .hf_listeners import ScoringListener
-from .hf_speakers import GenerateSpeaker, ScoringSpeaker
+from .hf_speakers import GenerateSpeaker
 
 
 class JointInferenceSpeaker:
@@ -43,7 +43,7 @@ class JointInferenceSpeaker:
             generation_config=speaker_generation_config,
             prompt_type=speaker_prompt_type,
         )
-        self.scoring_speaker = ScoringSpeaker(
+        self.scoring_speaker = GenerateSpeaker(
             speaker_model,
             speaker_processor,
             image_base_path,

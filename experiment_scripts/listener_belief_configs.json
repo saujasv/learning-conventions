@@ -1,0 +1,2689 @@
+[
+    {
+        "tasks_file": "data/coco-games-hard.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "data/coco-games-hard.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "data/coco-games-hard.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "data/coco-games-hard.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "data/coco-games-hard.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "data/coco-games-hard.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "data/coco-games-hard.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "data/coco-games-hard.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "data/coco-games-medium.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "data/coco-games-medium.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "data/coco-games-medium.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "data/coco-games-medium.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "data/coco-games-medium.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "data/coco-games-medium.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "data/coco-games-medium.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "data/coco-games-medium.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "generation_config": {
+                "do_sample": true,
+                "max_new_tokens": 128,
+                "temperature": 2.0,
+                "min_p": 0.1
+            },
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja",
+            "max_image_size": 256
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "google/gemma-3-12b-it",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "saujasv/pixtral-12b",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral_ft-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": {
+                "text_config": "flash_attention_2"
+            },
+            "context_presentation": "once",
+            "chat_template_file": "agents/pixtral-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=False-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=True-next=random.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "random"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=True-next=shortest_correct.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=pixtral-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=True-next=min_wnr.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "min_wnr"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_hard-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=gemma-listener=gemma_ft-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=null-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=False-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ],
+        "next_message_policy": "shortest_correct"
+    },
+    {
+        "tasks_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=null-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "output_file": "results/listener-belief-update/coco_medium-speaker=pixtral-listener=gemma_ft-listener_context=once-length_conditioned=True-next=remention.jsonl",
+        "speaker": {
+            "model_name_or_path": "replay"
+        },
+        "listener": {
+            "model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/gemma-coco-listener-6-merged",
+            "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+            "attn_implementation": "flash_attention_2",
+            "context_presentation": "once",
+            "chat_template_file": "agents/gemma-3-chat-template.jinja"
+        },
+        "target_lengths": [
+            null,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8,
+            16,
+            16
+        ],
+        "next_message_policy": "shortest_correct"
+    }
+]

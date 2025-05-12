@@ -1,15 +1,9 @@
-from typing import Tuple, List
 import torch
-from PIL import Image
 import random
-import sys
-from copy import deepcopy
-import itertools
 from pathlib import Path
 from game import RepeatedReferenceGame, Trial
-from .chat_listener import ChatListener
 from .hf_listeners import ScoringListener
-from .hf_speakers import ScoringSpeaker
+from .hf_speakers import GenerateSpeaker
 
 
 class JointInferenceListener:
@@ -32,7 +26,7 @@ class JointInferenceListener:
             listener_context_presentation,
             listener_feedback_label,
         )
-        self.speaker = ScoringSpeaker(
+        self.speaker = GenerateSpeaker(
             model,
             processor,
             image_base_path,
