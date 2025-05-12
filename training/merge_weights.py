@@ -1,4 +1,4 @@
-from transformers import AutoModelForVision2Seq, AutoProcessor
+from transformers import AutoModelForImageTextToText, AutoProcessor
 from peft import PeftModel
 
 
@@ -13,7 +13,7 @@ def merge_lora_weights(base_model_name_or_path, adapter_name_or_path, output_pat
         adapter_name_or_path (str): The name or path of the adapter.
         output_path (str): The path to save the merged model.
     """
-    base_model = AutoModelForVision2Seq.from_pretrained(base_model_name_or_path)
+    base_model = AutoModelForImageTextToText.from_pretrained(base_model_name_or_path)
     processor = AutoProcessor.from_pretrained(base_model_name_or_path)
 
     model = PeftModel.from_pretrained(base_model, adapter_name_or_path)
