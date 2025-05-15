@@ -78,7 +78,7 @@ class ChatSpeaker(ChatAgent):
         trial_number: int = None,
         exclude_feedback: bool = False,
     ):
-        if trial.target is None:
+        if trial.get_target() is None:
             raise ValueError("Trial must have target for speaker to generate")
 
         if trial_number is not None:
@@ -113,14 +113,14 @@ class ChatSpeaker(ChatAgent):
             {
                 "type": "text",
                 "text": self.target_prompt_template.substitute(
-                    target=self.get_label(context, trial.target),
+                    target=self.get_label(context, trial.get_target()),
                     content="a description",
                 ),
             }
         ]
 
-        if not trial.correct is None:
-            if trial.message is None:
+        if not trial.get_correct() is None:
+            if trial.get_message() is None:
                 return []
 
             if hasattr(self, "use_length_token"):
@@ -131,13 +131,13 @@ class ChatSpeaker(ChatAgent):
                             "Processor must be provided to use length token"
                         )
                     encoded = processor.tokenizer.encode(
-                        trial.message, add_special_tokens=False
+                        trial.get_message(), add_special_tokens=False
                     )
-                    formatted_message = f"<{len(encoded)}> {trial.message}"
+                    formatted_message = f"<{len(encoded)}> {trial.get_message()}"
                 else:
-                    formatted_message = trial.message
+                    formatted_message = trial.get_message()
             else:
-                formatted_message = trial.message
+                formatted_message = trial.get_message()
 
             if self.text_only_assistant:
                 message_prompt = [{"role": "assistant", "content": formatted_message}]
@@ -155,7 +155,7 @@ class ChatSpeaker(ChatAgent):
                 ]
 
             if not exclude_feedback:
-                if trial.selection is None:
+                if trial.get_selection() is None:
                     feedback_prompt = [
                         {
                             "role": "user",
@@ -167,14 +167,14 @@ class ChatSpeaker(ChatAgent):
                             ],
                         }
                     ]
-                elif trial.correct:
+                elif trial.get_correct():
                     feedback_prompt = [
                         {
                             "role": "user",
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": f"The listener correctly answered Image {self.get_label(context, trial.selection)}.",
+                                    "text": f"The listener correctly answered Image {self.get_label(context, trial.get_selection())}.",
                                 }
                             ],
                         }
@@ -187,7 +187,7 @@ class ChatSpeaker(ChatAgent):
                                 {
                                     "type": "text",
                                     "text": (
-                                        f"The listener mistakenly answered Image {self.get_label(context, trial.selection)}."
+                                        f"The listener mistakenly answered Image {self.get_label(context, trial.get_selection())}."
                                         if self.feedback_label
                                         else "The listener answered incorrectly."
                                     ),

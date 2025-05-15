@@ -1,7 +1,7 @@
 from string import Template
 
 SPEAKER_SYSTEM_PROMPT_BASIC = Template(
-    "I will show  $num_images images labelled as $labels. I will then mention an image. Describe the image corresponding to the label. Your response should only contain the message. Your message does not need to be a full sentence. Your message should be a fluent description."
+    "I will show  $num_images images labelled as $labels. I will then mention an image. Describe the image corresponding to the label. Your response should only contain the message. Your message does not need to be a full sentence. Your message should be a brief description of something in the image."
 )
 
 SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC = (

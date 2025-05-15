@@ -8,13 +8,13 @@ anyio==4.9.0
 astor==0.8.1
 asttokens==2.4.1
 attrs==25.3.0
-bitsandbytes==0.45.0
+bitsandbytes==0.45.5
 blake3==1.0.4
 blis==1.0.1
 cachetools==5.5.2
 catalogue==2.0.10
-certifi==2025.1.31
-charset-normalizer==3.4.1
+certifi==2025.4.26
+charset-normalizer==3.4.2
 click==8.1.8
 cloudpathlib==0.20.0
 cloudpickle==3.1.1
@@ -26,10 +26,10 @@ cupy-cuda12x==13.4.1
 cut-cross-entropy==24.12.3
 cycler==0.12.1
 cymem==2.0.8
-datasets==3.5.0
+datasets==3.6.0
 debugpy==1.8.6
 decorator==5.1.1
-deepspeed==0.15.1
+deepspeed==0.16.7
 Deprecated==1.2.18
 depyf==0.18.0
 dill==0.3.8
@@ -41,6 +41,7 @@ docstring_parser==0.16
 einops==0.8.1
 email_validator==2.2.0
 emoji==2.14.1
+en_core_web_sm==3.8.0
 exceptiongroup==1.2.2
 executing==2.1.0
 fastapi==0.115.12
@@ -51,7 +52,7 @@ fire==0.7.0
 flash-attn==2.6.3
 fonttools==4.54.1
 frozenlist==1.5.0
-fsspec==2024.12.0
+fsspec==2025.3.0
 gguf==0.14.0
 gitdb==4.0.12
 GitPython==3.1.44
@@ -64,7 +65,7 @@ hjson==3.1.0
 httpcore==1.0.8
 httptools==0.6.4
 httpx==0.28.1
-huggingface-hub==0.30.2
+huggingface-hub==0.31.2
 idna==3.10
 importlib_metadata==8.0.0
 inflect==7.4.0
@@ -112,7 +113,7 @@ networkx==3.4.2
 ninja==1.11.1.4
 nltk==3.9.1
 numba==0.61.2
-numpy>=1.26.4
+numpy==2.2.5
 nvidia-cublas-cu12==12.4.5.8
 nvidia-cuda-cupti-cu12==12.4.127
 nvidia-cuda-nvrtc-cu12==12.4.127
@@ -140,7 +141,7 @@ opentelemetry-semantic-conventions==0.47b0
 opentelemetry-semantic-conventions-ai==0.4.3
 outlines==0.1.11
 outlines_core==0.1.26
-packaging==24.2
+packaging==25.0
 pandas==2.2.3
 parso==0.8.4
 partial-json-parser==0.2.1.1.post5
@@ -218,7 +219,7 @@ tqdm==4.67.1
 traitlets==5.14.3
 transformers==4.51.3
 triton==3.2.0
-trl==0.12.1
+trl==0.17.0
 typeguard==4.3.0
 typer==0.15.2
 typing_extensions==4.13.2

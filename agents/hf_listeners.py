@@ -73,9 +73,10 @@ class ScoringListener(ChatListener):
                         Trial(
                             target=repeated_reference_game.trials[-1].target,
                             message=repeated_reference_game.trials[-1].message,
-                            selection=c,
-                            # correct=c == repeated_reference_game.trials[-1].target,
-                            correct=True,
+                            interpretation={
+                                x: (0 if x == c else -float("inf"))
+                                for x in repeated_reference_game.context
+                            },
                         ),
                     ],
                 )
@@ -171,7 +172,9 @@ class ScoringListener(ChatListener):
 
             model_input_texts.append(formatted_counterfactual_prompt_messages[0])
             model_input_images.append(counterfactual_prompt_images[0])
-            batch_options.append([g.trials[-1].selection for g in counterfactual_games])
+            batch_options.append(
+                [g.trials[-1].get_selection() for g in counterfactual_games]
+            )
 
         processed_inputs = self.processor(
             text=model_input_texts,

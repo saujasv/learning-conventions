@@ -1,15 +1,31 @@
-from typing import NamedTuple, List, Tuple, Optional, Any, Annotated
-from enum import Enum
-from pydantic import BaseModel, RootModel, model_validator, Field
-from collections import defaultdict
+from typing import List, Tuple, Optional, Annotated
+from pydantic import BaseModel, Field
 from itertools import batched
 
 
 class Trial(BaseModel):
     target: str
     message: Optional[str] = None
-    selection: Optional[str] = None
-    correct: Optional[bool] = None
+    interpretation: Optional[dict] = None
+
+    def get_target(self) -> str:
+        return self.target
+
+    def get_message(self) -> Optional[str]:
+        return self.message
+
+    def get_selection(self) -> Optional[str]:
+        if self.interpretation:
+            return max(self.interpretation, key=self.interpretation.get)
+        return None
+
+    def get_correct(self) -> Optional[bool]:
+        if self.interpretation:
+            return max(self.interpretation, key=self.interpretation.get) == self.target
+        return None
+
+    def get_interpretation(self) -> Optional[dict]:
+        return self.interpretation
 
 
 class RepeatedReferenceGame(BaseModel):

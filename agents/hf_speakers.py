@@ -73,6 +73,9 @@ class GenerateSpeaker(ChatSpeaker):
         num_return_sequences=None,
         target_lengths=None,
     ):
+        if not num_return_sequences is None:
+            target_lengths = [None for _ in range(num_return_sequences)]
+
         return list(
             itertools.chain.from_iterable(
                 [
