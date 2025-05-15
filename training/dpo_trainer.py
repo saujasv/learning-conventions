@@ -198,7 +198,9 @@ class DataCollatorForPreference:
 
     def __call__(self, examples):
         """
-        Same as `tokenize_row` but for vision models. Please refer to `tokenize_row` for more information.
+        Process a batch of examples. The examples contain the prompt messages, chosen messages, and rejected messages.
+
+        The function applies the chat template, extracts images, processes the inputs and returns tensors for the batch.
         """
         processed_inputs = [
             maybe_apply_chat_template(x, self.processor.tokenizer) for x in examples
@@ -213,8 +215,6 @@ class DataCollatorForPreference:
             for (x, p) in zip(examples, processed_inputs)
         ]
 
-        # prompt_input_ids = processed_features["input_ids"]
-        # pixel_values = processed_features["pixel_values"]
         chosen_input_ids = [
             self.processor.tokenizer(x["chosen"], add_special_tokens=False)["input_ids"]
             for x in processed_inputs
@@ -232,13 +232,6 @@ class DataCollatorForPreference:
         rejected_input_ids = [
             x + [self.processor.tokenizer.eos_token_id] for x in rejected_input_ids
         ]
-
-        # output = {
-        #     "prompt_input_ids": prompt_input_ids,
-        #     "pixel_values": pixel_values,
-        #     "chosen_input_ids": chosen_input_ids,
-        #     "rejected_input_ids": rejected_input_ids,
-        # }
 
         output = self.torch_call(
             [
