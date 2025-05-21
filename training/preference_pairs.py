@@ -14,6 +14,7 @@ from agents.prompts import (
 )
 from training.simulation_utils import (
     sequence_targets,
+    sequence_targets_blocks,
     informativity_and_cost_preference,
 )
 from tqdm import tqdm
@@ -104,7 +105,7 @@ def sample_game(
     """
     game = RepeatedReferenceGame(context=context, trials=[])
 
-    targets = sequence_targets(context, num_trials)
+    targets = sequence_targets_blocks(context, num_trials)
 
     data = list()
     game_id = str(uuid.uuid4())

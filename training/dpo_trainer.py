@@ -150,7 +150,7 @@ class DataCollatorForPreference:
         ]
         if "pixel_values" in examples[0]:
             pixel_values = [
-                torch.tensor(example["pixel_values"]) for example in examples
+                torch.as_tensor(example["pixel_values"]) for example in examples
             ]
         if "pixel_attention_mask" in examples[0]:
             pixel_attention_mask = [
@@ -208,7 +208,7 @@ class DataCollatorForPreference:
 
         processed_features = [
             self.processor(
-                images=[Image.open(img) for img in x["images"]],
+                images=[Image.open(img).convert("RGB") for img in x["images"]],
                 text=[p["prompt"]],
                 add_special_tokens=False,
             )

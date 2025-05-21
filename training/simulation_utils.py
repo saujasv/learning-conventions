@@ -1,5 +1,6 @@
 from typing import List
 import numpy as np
+import random
 from game import RepeatedReferenceGame, Trial
 import stanza
 
@@ -40,6 +41,26 @@ def sequence_targets(context: List[str], num_trials: int) -> List[str]:
             else:
                 idx = np.random.choice(len(used_targets))
                 targets.append(used_targets[idx])
+    return targets
+
+def sequence_targets_blocks(context: List[str], num_trials: int) -> List[str]:
+    """
+    Generate a sequence of targets based on the context.
+
+    Args:
+        context (List[str]): List of items in the context.
+        num_trials (int): Number of trials to generate.
+    Returns:
+        List[str]: List of target items.
+    """
+    random.shuffle(context)
+    repeated_targets = context[:len(context) // 2]
+    control_targets = context[len(context) // 2 :]
+    targets = list()
+    for c in control_targets:
+        targets.extend(random.sample([*repeated_targets, c], len(repeated_targets) + 1))
+    targets.extend(random.sample(repeated_targets, len(repeated_targets)))
+
     return targets
 
 
