@@ -1,0 +1,42 @@
+{
+    "contexts_file": "data/coco-games-hard-100-contexts.json",
+    "speaker_model": {
+        "pretrained_model_name_or_path": "google/gemma-3-12b-it",
+        "device_map": "cuda:0",
+        "torch_dtype": "bfloat16",
+        "attn_implementation": "flash_attention_2"
+    },
+    "speaker_processor": {
+        "pretrained_model_name_or_path": "google/gemma-3-12b-it"
+    },
+    "speaker_config": {
+        "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+        "generation_config": {
+            "do_sample": true,
+            "max_new_tokens": 64,
+            "temperature": 2.0,
+            "min_p": 0.1
+        },
+        "context_presentation": "once",
+        "chat_template_file": "agents/gemma-3-chat-template.jinja"
+    },
+    "listener_model": {
+        "pretrained_model_name_or_path": "/data/tir/projects/tir3/users/svadugur/tangrams/models/pixtral-coco-listener-6-merged",
+        "device_map": "cuda:1",
+        "torch_dtype": "bfloat16",
+        "attn_implementation": {"text_config": "flash_attention_2"}
+    },
+    "listener_processor": {
+        "pretrained_model_name_or_path": "saujasv/pixtral-12b"
+    },
+    "listener_config": {
+        "image_base_path": "/data/tir/projects/tir1/corpora/MSCOCO/images",
+        "feedback_label": true,
+        "context_presentation": "last_shuffle",
+        "chat_template_file": "agents/pixtral-chat-template.jinja"
+    },
+    "num_trials": 15,
+    "num_samples": 8,
+    "target_lengths": [2, 2, 4, 4, 8, 8, 16, 16],
+    "save_file": "results/preference_pairs/preference_pairs-speaker=gemma-listener=pixtral_ft-length_conditioned=True-contexts=hard.jsonl"
+}
