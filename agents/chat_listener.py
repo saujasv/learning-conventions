@@ -47,7 +47,7 @@ class ChatListener(ChatAgent):
         trial_number: int = None,
         exclude_feedback: bool = False,
     ):
-        if not trial.correct is None and trial.message is None:
+        if not trial.get_correct() is None and trial.get_message() is None:
             return list()
 
         if trial_number is not None:
@@ -79,16 +79,16 @@ class ChatListener(ChatAgent):
         message_prompt = [
             {
                 "type": "text",
-                "text": f"\nWhich image is this message referring to: {trial.message}\nOutput the image label only (a single letter).",
+                "text": f"\nWhich image is this message referring to: {trial.get_message()}\nOutput the image label only (a single letter).",
             }
         ]
 
-        if not trial.correct is None:
+        if not trial.get_correct() is None:
             if self.text_only_assistant:
                 selection_prompt = [
                     {
                         "role": "assistant",
-                        "content": f"{self.get_label(context, trial.selection)}.",
+                        "content": f"{self.get_label(context, trial.get_selection())}.",
                     }
                 ]
             else:
@@ -98,14 +98,14 @@ class ChatListener(ChatAgent):
                         "content": [
                             {
                                 "type": "text",
-                                "text": f"{self.get_label(context, trial.selection)}.",
+                                "text": f"{self.get_label(context, trial.get_selection())}.",
                             }
                         ],
                     }
                 ]
 
             if not exclude_feedback:
-                if trial.correct is None:
+                if trial.get_correct() is None:
                     feedback_prompt = [
                         {
                             "role": "user",
@@ -117,7 +117,7 @@ class ChatListener(ChatAgent):
                             ],
                         }
                     ]
-                elif trial.correct:
+                elif trial.get_correct():
                     feedback_prompt = [
                         {
                             "role": "user",
@@ -132,7 +132,7 @@ class ChatListener(ChatAgent):
                                 {
                                     "type": "text",
                                     "text": (
-                                        f"Wrong, I'm referring to image {self.get_label(context, trial.target)}."
+                                        f"Wrong, I'm referring to image {self.get_label(context, trial.get_target())}."
                                         if self.feedback_label
                                         else "Wrong."
                                     ),
@@ -171,7 +171,7 @@ class ChatListener(ChatAgent):
         return context[selection_idx]
 
     def select(self, repeated_reference_game):
-        if repeated_reference_game.trials[-1].message is None:
+        if repeated_reference_game.trials[-1].get_message() is None:
             return random.choice(repeated_reference_game.context)
         messages, context = self.construct_prompt_messages(repeated_reference_game)
         response = self.api_call(messages)

@@ -32,9 +32,37 @@ class ChatAgent:
             "The introduction prompt is specific to the agent type (speaker/listener)."
         )
 
+    def get_images(self, messages):
+        """
+        Extracts image paths from the messages.
+        Args:
+            messages: List of message dictionaries.
+        Returns:
+            A list of image paths.
+        """
+        images = list()
+        for msg in messages:
+            for chunk in msg["content"]:
+                if chunk["type"] == "image_url":
+                    images.append(chunk["image_url"]["url"])
+
+        return images
+
     def construct_prompt_messages(
-        self, repeated_reference_game, exclude_feedback_on_last=False, random_seed=None
+        self,
+        repeated_reference_game,
+        exclude_feedback_on_last=False,
+        random_seed=None,
     ):
+        """
+        Constructs the prompt messages for the chat agent based on the context presentation type.
+        Args:
+            repeated_reference_game: The repeated reference game object.
+            exclude_feedback_on_last: Whether to exclude feedback on the last trial.
+            random_seed: Random seed for shuffling.
+        Returns:
+            A tuple containing the prompt messages and a list of paths to all images appearing in the messages.
+        """
         intro = self.get_intro(repeated_reference_game.context)
         if self.context_presentation == "no_history":
             trial_messages = [
@@ -50,8 +78,6 @@ class ChatAgent:
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-
-            return self.collapse_turns(messages), repeated_reference_game.context
         elif self.context_presentation == "once":
             trial_messages = list()
             show_images = True
@@ -76,7 +102,6 @@ class ChatAgent:
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-            return self.collapse_turns(messages), repeated_reference_game.context
         elif self.context_presentation == "last_shuffle":
             if random_seed:
                 random.seed(random_seed)
@@ -113,7 +138,6 @@ class ChatAgent:
                 *itertools.chain.from_iterable(trial_messages),
                 *last_trial_messages,
             ]
-            return self.collapse_turns(messages), last_trial_context
         elif self.context_presentation == "last_no_shuffle":
             if random_seed:
                 random.seed(random_seed)
@@ -148,7 +172,6 @@ class ChatAgent:
                 *itertools.chain.from_iterable(trial_messages),
                 *last_trial_messages,
             ]
-            return self.collapse_turns(messages), last_trial_context
         elif self.context_presentation == "trial_shuffle":
             if random_seed:
                 random.seed(random_seed)
@@ -176,7 +199,6 @@ class ChatAgent:
                 *intro,
                 *itertools.chain.from_iterable(trial_messages),
             ]
-            return self.collapse_turns(messages), trial_context
         elif self.context_presentation == "block_shuffle":
             if random_seed:
                 random.seed(random_seed)
@@ -228,9 +250,11 @@ class ChatAgent:
             ]
 
             assert block_context is not None, "Block context should not be None."
-            return self.collapse_turns(messages), block_context
         else:
             raise ValueError("Invalid context presentation type.")
+
+        collapsed_messages = self.collapse_turns(messages)
+        return collapsed_messages, self.get_images(collapsed_messages)
 
     def collapse_turns(self, messages):
         collapsed_messages = list()

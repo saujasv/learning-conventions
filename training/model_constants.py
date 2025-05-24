@@ -1,4 +1,9 @@
-from transformers import PixtralProcessor, Idefics3Processor, Qwen2_5_VLProcessor
+from transformers import (
+    PixtralProcessor,
+    Idefics3Processor,
+    Qwen2_5_VLProcessor,
+    Gemma3Processor,
+)
 
 
 def get_lora_target_modules(model_config, lora_targets):
@@ -31,6 +36,8 @@ def get_chat_template_features(processor):
         return "Assistant:", "User:"
     elif isinstance(processor, Qwen2_5_VLProcessor):
         return "<|im_start|>assistant", "<|im_start|>user"
+    elif isinstance(processor, Gemma3Processor):
+        return "<start_of_turn>model\n", "<start_of_turn>user\n"
     else:
         raise ValueError(f"Unsupported processor type: {type(processor)}")
 
@@ -40,5 +47,7 @@ def get_image_sizes_field(processor):
         return "image_sizes"
     elif isinstance(processor, Qwen2_5_VLProcessor):
         return "image_grid_thw"
+    elif isinstance(processor, Gemma3Processor):
+        return None
     else:
         raise ValueError(f"Unsupported processor type: {type(processor)}")
