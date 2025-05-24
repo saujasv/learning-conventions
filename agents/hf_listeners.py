@@ -1,5 +1,5 @@
-from typing import Tuple, List
 import torch
+import os
 from PIL import Image
 import random
 from accelerate import find_executable_batch_size
@@ -14,7 +14,6 @@ class ScoringListener(ChatListener):
         self,
         model,
         processor,
-        image_base_path: str = "",
         context_presentation="block_shuffle",
         feedback_label=False,
         max_image_size=None,
@@ -27,7 +26,7 @@ class ScoringListener(ChatListener):
         )
         self.model = model
         self.processor = processor
-        self.image_base_path = image_base_path
+        self.image_base_path = os.getenv("IMAGE_BASE_PATH", "")
         self.text_only_assistant = False
         self.max_image_size = max_image_size
         self.chat_template = None
