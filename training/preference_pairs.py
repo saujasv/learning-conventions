@@ -49,7 +49,6 @@ def sample_trial(
     target: str,
     speaker: ChatSpeaker,
     listener: ChatListener,
-    preference_criterion: callable,
     num_samples: Optional[int] = None,
     target_lengths: Optional[List[int]] = None,
 ) -> List[Trial]:
@@ -121,7 +120,7 @@ def sample_game(
     """
     game = RepeatedReferenceGame(context=context, trials=[])
 
-    targets = sequence_targets_blocks(context, num_trials)
+    targets = sequence_targets(context, num_trials)
 
     data = list()
     game_id = str(uuid.uuid4())
@@ -131,7 +130,6 @@ def sample_game(
             tgt,
             speaker,
             listener,
-            preference_criterion,
             num_samples=num_samples,
             target_lengths=target_lengths,
         )

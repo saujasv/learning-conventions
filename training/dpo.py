@@ -105,7 +105,6 @@ def train(
     agent = GenerateSpeaker(
         None,
         processor,
-        image_base_path=kwargs.get("--images_base_path", None),
         context_presentation=kwargs.get("--context_presentation", "once"),
         feedback_label=bool(kwargs.get("--feedback_label", "false")),
         chat_template_file=kwargs.get("--chat_template_file", None),

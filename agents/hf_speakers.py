@@ -1,15 +1,11 @@
-from typing import Tuple, List
-import torch
 from PIL import Image
-import random
 import itertools
 from pathlib import Path
-from transformers import PixtralProcessor
 from accelerate import find_executable_batch_size
 import re
 from copy import deepcopy
+import os
 from .chat_speaker import ChatSpeaker
-from .hf_listeners import ScoringListener
 from .prompts import (
     SPEAKER_SYSTEM_PROMPT_STANDARD,
     SPEAKER_USER_PROMPT_PHOTOGRAPHS,
@@ -22,7 +18,6 @@ class GenerateSpeaker(ChatSpeaker):
         self,
         model,
         processor,
-        image_base_path: str = "",
         generation_config=None,
         context_presentation="last_shuffle",
         feedback_label=False,
@@ -49,7 +44,7 @@ class GenerateSpeaker(ChatSpeaker):
         else:
             self.chat_template = None
 
-        self.image_base_path = image_base_path
+        self.image_base_path = os.getenv("IMAGE_BASE_PATH", "")
         self.max_image_size = max_image_size
 
         self.generation_config = {
