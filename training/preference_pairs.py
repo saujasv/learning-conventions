@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import uuid
 from copy import deepcopy
 import numpy as np
@@ -19,6 +19,30 @@ from training.simulation_utils import (
 from tqdm import tqdm
 
 
+def make_preference_pairs(
+    sampled_trials: List[Trial],
+    preference_criterion: callable,
+) -> List[Tuple[Trial, Trial]]:
+    """
+    Make preference pairs from sampled trials.
+
+    Args:
+        sampled_trials (List[Trial]): List of sampled trials.
+        preference_criterion (callable): Function to determine preference between trials.
+
+    Returns:
+        List[Tuple[Trial, Trial]]: List of preference pairs where the first trial is preferred over the second.
+    """
+    preference_pairs = list()
+    for i, trial1 in enumerate(sampled_trials):
+        for j, trial2 in enumerate(sampled_trials):
+            if i == j:
+                continue
+            if preference_criterion(trial1, trial2):
+                preference_pairs.append((trial1, trial2))
+    return preference_pairs
+
+
 def sample_trial(
     game: RepeatedReferenceGame,
     target: str,
@@ -27,7 +51,7 @@ def sample_trial(
     preference_criterion: callable,
     num_samples: Optional[int] = None,
     target_lengths: Optional[List[int]] = None,
-):
+) -> List[Trial]:
     """
     Generate samples for one trial of the game and create preference pairs.
 
@@ -70,15 +94,7 @@ def sample_trial(
         for msg, interp in zip(sampled_messages, listener_interpretations)
     ]
 
-    preference_pairs = list()
-    for i, trial1 in enumerate(sampled_trials):
-        for j, trial2 in enumerate(sampled_trials):
-            if i == j:
-                continue
-            if preference_criterion(trial1, trial2):
-                preference_pairs.append((trial1, trial2))
-
-    return sampled_trials, preference_pairs
+    return sampled_trials
 
 
 def sample_game(
@@ -86,7 +102,7 @@ def sample_game(
     num_trials: int,
     speaker: GenerateSpeaker,
     listener: ScoringListener,
-    preference_criterion: callable,
+    preference_criterion: Optional[callable] = None,
     num_samples: Optional[int] = None,
     target_lengths: Optional[List[int]] = None,
 ):
@@ -109,7 +125,7 @@ def sample_game(
     data = list()
     game_id = str(uuid.uuid4())
     for tgt in tqdm(targets, desc=f"Sampling game {game_id}"):
-        sampled_trials, preference_pairs = sample_trial(
+        sampled_trials = sample_trial(
             game,
             tgt,
             speaker,
@@ -118,6 +134,13 @@ def sample_game(
             num_samples=num_samples,
             target_lengths=target_lengths,
         )
+        if preference_criterion is not None:
+            preference_pairs = make_preference_pairs(
+                sampled_trials, preference_criterion
+            )
+        else:
+            preference_pairs = None
+
         data.append(
             {
                 "game_id": game_id,
