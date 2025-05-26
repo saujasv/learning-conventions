@@ -16,11 +16,15 @@ from training.simulation_utils import (
     sequence_targets,
     sequence_targets_blocks,
     informativity_and_cost_preference,
+    informativity_preference,
+    length_change_preference,
+    wnr_change_preference,
 )
 from tqdm import tqdm
 
 
 def make_preference_pairs(
+    game: RepeatedReferenceGame,
     sampled_trials: List[Trial],
     preference_criterion: callable,
 ) -> List[Tuple[Trial, Trial]]:
@@ -39,7 +43,7 @@ def make_preference_pairs(
         for j, trial2 in enumerate(sampled_trials):
             if i == j:
                 continue
-            if preference_criterion(trial1, trial2):
+            if preference_criterion(game, trial1, trial2):
                 preference_pairs.append((trial1, trial2))
     return preference_pairs
 
@@ -156,7 +160,7 @@ def sample_game(
     return data
 
 
-def run(config_path: str):
+def run_sampling(config_path: str):
     import json
     import jsonlines
     from pydantic_core import to_jsonable_python
@@ -208,3 +212,34 @@ def run(config_path: str):
 
         with jsonlines.open(config.get("save_file"), mode="a") as writer:
             writer.write_all(to_jsonable_python(data))
+
+
+def run_preference_pairs(samples_file: str, preference_criterion: str, save_file: str):
+    import jsonlines
+    from pydantic_core import to_jsonable_python
+
+    # Map preference criterion names to functions
+    preference_functions = {
+        "informativity_and_cost_preference": informativity_and_cost_preference,
+        "informativity_preference": informativity_preference,
+        "length_change_preference": length_change_preference,
+        "wnr_change_preference": wnr_change_preference,
+    }
+
+    # Get the function from the name
+    preference_function = preference_functions.get(preference_criterion)
+    if preference_function is None:
+        raise ValueError(f"Unknown preference criterion: {preference_criterion}")
+
+    with jsonlines.open(samples_file, "r") as reader:
+        data = list(reader)
+
+    for x in tqdm(data, desc="Making preference pairs"):
+        x["preference_pairs"] = make_preference_pairs(
+            RepeatedReferenceGame.model_validate(x["game"]),
+            list(map(Trial.model_validate, x["sampled_trials"])),
+            preference_function,
+        )
+
+    with jsonlines.open(save_file, "w") as writer:
+        writer.write_all(to_jsonable_python(data))
