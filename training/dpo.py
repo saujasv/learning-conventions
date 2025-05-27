@@ -123,7 +123,7 @@ def train(
     train_df = train_df.drop(columns=["game", "preference_pairs", "sampled_trials"])
 
     train_dataset = Dataset.from_pandas(train_df)
-    # train_dataset = train_dataset.cast_column("images", Sequence(Image()))
+
     validation_df = pd.read_json(
         Path(script_args.dataset_name) / "validation.jsonl",
         lines=True,
@@ -138,7 +138,6 @@ def train(
         columns=["game", "preference_pairs", "sampled_trials"]
     )
     validation_dataset = Dataset.from_pandas(validation_df)
-    # validation_dataset = validation_dataset.cast_column("images", Sequence(Image()))
 
     ################
     # Training

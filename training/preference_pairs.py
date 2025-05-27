@@ -22,6 +22,18 @@ from training.simulation_utils import (
 )
 from tqdm import tqdm
 
+# Map preference criterion names to functions
+PREFERENCE_FUNCTIONS = {
+    "informativity_and_cost_preference": informativity_and_cost_preference,
+    "informativity_preference": informativity_preference,
+    "length_change_preference": length_change_preference,
+    "wnr_change_preference": wnr_change_preference,
+}
+
+TARGET_SEQUENCE_FUNCTIONS = {
+    "sequence_targets": sequence_targets,
+    "sequence_targets_blocks": sequence_targets_blocks,
+}
 
 def make_preference_pairs(
     game: RepeatedReferenceGame,
@@ -106,6 +118,7 @@ def sample_game(
     num_trials: int,
     speaker: GenerateSpeaker,
     listener: ScoringListener,
+    target_sequence_function: Optional[callable] = None,
     preference_criterion: Optional[callable] = None,
     num_samples: Optional[int] = None,
     target_lengths: Optional[List[int]] = None,
@@ -124,7 +137,10 @@ def sample_game(
     """
     game = RepeatedReferenceGame(context=context, trials=[])
 
-    targets = sequence_targets(context, num_trials)
+    if target_sequence_function is None:
+        targets = sequence_targets(context, num_trials)
+    else:
+        targets = target_sequence_function(context, num_trials)
 
     data = list()
     game_id = str(uuid.uuid4())
@@ -199,13 +215,25 @@ def run_sampling(config_path: str):
         **config.get("listener_config"),
     )
 
+    preference_criterion = config.get("preference_criterion")
+    if preference_criterion:
+        preference_function = PREFERENCE_FUNCTIONS[preference_criterion]
+    else:
+        preference_function = None
+    target_sequence_type = config.get("target_sequence_function")
+    if target_sequence_type:
+        target_sequence_function = TARGET_SEQUENCE_FUNCTIONS[target_sequence_type]
+    else:
+        target_sequence_function = None
+
     for context in contexts:
         data = sample_game(
             context,
             config.get("num_trials"),
             speaker,
             listener,
-            informativity_and_cost_preference,
+            target_sequence_function=target_sequence_function,
+            preference_criterion=preference_function,
             num_samples=config.get("num_samples"),
             target_lengths=config.get("target_lengths"),
         )
@@ -218,16 +246,8 @@ def run_preference_pairs(samples_file: str, preference_criterion: str, save_file
     import jsonlines
     from pydantic_core import to_jsonable_python
 
-    # Map preference criterion names to functions
-    preference_functions = {
-        "informativity_and_cost_preference": informativity_and_cost_preference,
-        "informativity_preference": informativity_preference,
-        "length_change_preference": length_change_preference,
-        "wnr_change_preference": wnr_change_preference,
-    }
-
     # Get the function from the name
-    preference_function = preference_functions.get(preference_criterion)
+    preference_function = PREFERENCE_FUNCTIONS.get(preference_criterion)
     if preference_function is None:
         raise ValueError(f"Unknown preference criterion: {preference_criterion}")
 
