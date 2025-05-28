@@ -16,6 +16,8 @@ from training.simulation_utils import (
     sequence_targets,
     sequence_targets_blocks,
     informativity_and_cost_preference,
+    informativity_margin_and_cost_preference,
+    correctness_and_cost_preference,
     informativity_preference,
     length_change_preference,
     wnr_change_preference,
@@ -28,12 +30,15 @@ PREFERENCE_FUNCTIONS = {
     "informativity_preference": informativity_preference,
     "length_change_preference": length_change_preference,
     "wnr_change_preference": wnr_change_preference,
+    "informativity_margin_and_cost_preference": informativity_margin_and_cost_preference,
+    "correctness_and_cost_preference": correctness_and_cost_preference,
 }
 
 TARGET_SEQUENCE_FUNCTIONS = {
     "sequence_targets": sequence_targets,
     "sequence_targets_blocks": sequence_targets_blocks,
 }
+
 
 def make_preference_pairs(
     game: RepeatedReferenceGame,
@@ -242,9 +247,16 @@ def run_sampling(config_path: str):
             writer.write_all(to_jsonable_python(data))
 
 
-def run_preference_pairs(samples_file: str, preference_criterion: str, save_file: str):
+def run_preference_pairs(
+    samples_file: str,
+    preference_criterion: str,
+    save_file: str,
+    **preference_criterion_kwargs,
+):
     import jsonlines
     from pydantic_core import to_jsonable_python
+
+    print(preference_criterion_kwargs)
 
     # Get the function from the name
     preference_function = PREFERENCE_FUNCTIONS.get(preference_criterion)
@@ -258,7 +270,9 @@ def run_preference_pairs(samples_file: str, preference_criterion: str, save_file
         x["preference_pairs"] = make_preference_pairs(
             RepeatedReferenceGame.model_validate(x["game"]),
             list(map(Trial.model_validate, x["sampled_trials"])),
-            preference_function,
+            lambda game, trial1, trial2: preference_function(
+                game, trial1, trial2, **preference_criterion_kwargs
+            ),
         )
 
     with jsonlines.open(save_file, "w") as writer:

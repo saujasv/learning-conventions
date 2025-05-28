@@ -119,10 +119,62 @@ def informativity_and_cost_preference(
     num_tokens1 = len(nlp(trial1.get_message()))
     num_tokens2 = len(nlp(trial2.get_message()))
     if (
-        trial1.get_interpretation()[trial1.get_target()]
-        > trial2.get_interpretation()[trial2.get_target()]
+        trial1.get_correct()
+        and (
+            trial1.get_interpretation()[trial1.get_target()]
+            > trial2.get_interpretation()[trial2.get_target()]
+        )
         and num_tokens1 < num_tokens2
     ):
+        return True
+
+    return False
+
+
+def informativity_margin_and_cost_preference(
+    game: RepeatedReferenceGame, trial1: Trial, trial2: Trial, min_p_target: float = 0.0
+):
+    """
+    Determine if trial1 is preferred over trial2 based on informativity and cost.
+
+    Args:
+        game (RepeatedReferenceGame): Game with all previous trials.
+        trial1 (Trial): First trial.
+        trial2 (Trial): Second trial.
+    Returns:
+        bool: True if trial1 is preferred, False otherwise.
+    """
+    num_tokens1 = len(nlp(trial1.get_message()))
+    num_tokens2 = len(nlp(trial2.get_message()))
+    if (
+        trial1.get_interpretation()[trial1.get_target()] > np.log(min_p_target)
+        and (
+            trial1.get_interpretation()[trial1.get_target()]
+            > trial2.get_interpretation()[trial2.get_target()]
+        )
+        and num_tokens1 < num_tokens2
+    ):
+        return True
+
+    return False
+
+
+def correctness_and_cost_preference(
+    game: RepeatedReferenceGame, trial1: Trial, trial2: Trial
+):
+    """
+    Determine if trial1 is preferred over trial2 based on informativity and cost.
+
+    Args:
+        game (RepeatedReferenceGame): Game with all previous trials.
+        trial1 (Trial): First trial.
+        trial2 (Trial): Second trial.
+    Returns:
+        bool: True if trial1 is preferred, False otherwise.
+    """
+    num_tokens1 = len(nlp(trial1.get_message()))
+    num_tokens2 = len(nlp(trial2.get_message()))
+    if trial1.get_correct() and not trial2.get_correct() and num_tokens1 < num_tokens2:
         return True
 
     return False
