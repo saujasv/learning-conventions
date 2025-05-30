@@ -60,7 +60,7 @@ class GenerateSpeaker(ChatSpeaker):
 
         self.text_only_assistant = False
 
-    @find_executable_batch_size(starting_batch_size=16)
+    @find_executable_batch_size(starting_batch_size=64)
     def batch_generate(
         batch_size,
         self,
