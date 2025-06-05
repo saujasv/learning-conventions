@@ -1,6 +1,7 @@
 from PIL import Image
 import itertools
 from pathlib import Path
+import torch
 from accelerate import find_executable_batch_size
 import re
 from copy import deepcopy
@@ -11,6 +12,7 @@ from .prompts import (
     SPEAKER_USER_PROMPT_PHOTOGRAPHS,
     SPEAKER_USER_PROMPT_TARGET,
 )
+from .utils import ContrastiveDecodingProcessor
 
 
 class GenerateSpeaker(ChatSpeaker):
@@ -26,6 +28,7 @@ class GenerateSpeaker(ChatSpeaker):
         target_prompt_template=SPEAKER_USER_PROMPT_TARGET,
         max_image_size=None,
         chat_template_file=None,
+        contrastive_decoding=False,
     ):
         ChatSpeaker.__init__(
             self,
@@ -46,7 +49,7 @@ class GenerateSpeaker(ChatSpeaker):
 
         self.image_base_path = os.getenv("IMAGE_BASE_PATH", "")
         self.max_image_size = max_image_size
-
+        self.contrastive_decoding = contrastive_decoding
         self.generation_config = {
             "max_new_tokens": 64,
             "temperature": 0.3,
@@ -136,12 +139,28 @@ class GenerateSpeaker(ChatSpeaker):
         )
         self.processor.tokenizer.padding_side = original_padding_side
 
-        outputs = self.model.generate(
-            **processed.to(self.model.device, self.model.dtype),
-            **self.generation_config,
-            tokenizer=self.processor.tokenizer,
-            pad_token_id=self.processor.tokenizer.eos_token_id,
-        )
+        if self.contrastive_decoding:
+            outputs = self.model.generate(
+                **processed.to(self.model.device, self.model.dtype),
+                **self.generation_config,
+                tokenizer=self.processor.tokenizer,
+                pad_token_id=self.processor.tokenizer.eos_token_id,
+                logits_processor=[
+                    ContrastiveDecodingProcessor(
+                        [repeated_reference_game],
+                        self,
+                        alpha=0.05,
+                        amateur_temp=1.0,
+                    ),
+                ],
+            )
+        else:
+            outputs = self.model.generate(
+                **processed.to(self.model.device, self.model.dtype),
+                **self.generation_config,
+                tokenizer=self.processor.tokenizer,
+                pad_token_id=self.processor.tokenizer.eos_token_id,
+            )
 
         response = [
             x.strip()
@@ -151,6 +170,107 @@ class GenerateSpeaker(ChatSpeaker):
         ]
 
         return response
+
+    @find_executable_batch_size(starting_batch_size=4)
+    def batch_score(batch_size, self, repeated_reference_games):
+        return list(
+            itertools.chain.from_iterable(
+                [
+                    self.score(batch)
+                    for batch in itertools.batched(repeated_reference_games, batch_size)
+                ]
+            )
+        )
+
+    @torch.no_grad()
+    def score(self, repeated_reference_games):
+        messages = [
+            self.construct_prompt_messages(game, exclude_feedback_on_last=True)[0]
+            for game in repeated_reference_games
+        ]
+
+        histories = [msg[:-1] for msg in messages]
+        formatted_histories = [
+            self.processor.apply_chat_template(hist, chat_template=self.chat_template)
+            for hist in histories
+        ]
+        processed_histories = self.processor(
+            text=formatted_histories,
+            images=[
+                list(
+                    itertools.chain.from_iterable(
+                        [
+                            [
+                                Image.open(chunk["image_url"]["url"]).convert("RGB")
+                                for chunk in m["content"]
+                                if chunk["type"] == "image_url"
+                            ]
+                            for m in hist
+                        ]
+                    )
+                )
+                for hist in histories
+            ],
+            return_tensors="pt",
+            padding=True,
+        )
+
+        first_pad_indices = []
+        for mask in processed_histories.attention_mask:
+            pad_positions = (mask == 0).nonzero(as_tuple=True)[0]
+            if len(pad_positions) > 0:
+                first_pad_indices.append(pad_positions[0].item())
+            else:
+                first_pad_indices.append(processed_histories.input_ids.shape[1])
+
+        formatted_messages = [
+            self.processor.apply_chat_template(msg, chat_template=self.chat_template)
+            for msg in messages
+        ]
+        processed = self.processor(
+            text=formatted_messages,
+            images=[
+                list(
+                    itertools.chain.from_iterable(
+                        [
+                            [
+                                Image.open(chunk["image_url"]["url"]).convert("RGB")
+                                for chunk in m["content"]
+                                if chunk["type"] == "image_url"
+                            ]
+                            for m in msg
+                        ]
+                    )
+                )
+                for msg in messages
+            ],
+            return_tensors="pt",
+            padding=True,
+        )
+
+        labels = processed.input_ids.clone()
+        labels_pad_token_mask = labels == self.processor.tokenizer.pad_token_id
+        labels[labels_pad_token_mask] = -100
+        for i, pad_idx in enumerate(first_pad_indices):
+            if pad_idx != -1:
+                labels[i, :pad_idx] = -100
+
+        outputs = self.model(
+            **processed.to(self.model.device, self.model.dtype),
+            labels=labels,
+            use_cache=False,
+        )
+
+        shift_logits = outputs.logits[..., :-1, :].contiguous()
+        shift_labels = labels[..., 1:].contiguous()
+
+        loss = torch.nn.functional.cross_entropy(
+            shift_logits.view(-1, shift_logits.size(-1)),
+            shift_labels.view(-1).to(shift_logits.device),
+            reduction="none",
+        )
+
+        return (-1 * loss.view(shift_labels.shape).sum(dim=-1)).tolist()
 
     def encode_image(self, image_path):
         return str(Path(self.image_base_path) / image_path)

@@ -41,11 +41,6 @@ TARGET_SEQUENCE_FUNCTIONS = {
     "sequence_targets_blocks": sequence_targets_blocks,
 }
 
-SELECT_NEXT_TRIAL_FUNCTIONS = {
-    "select_next_trial_random": select_next_trial_random,
-    "select_next_trial_best": select_next_trial_best,
-}
-
 
 def make_preference_pairs(
     game: RepeatedReferenceGame,
@@ -99,8 +94,10 @@ def make_preference_pairs_copeland(
 
     n_copeland = max([len(p) for p in preference_pairs])
 
-    return itertools.chain.from_iterable(
-        [p for p in preference_pairs if len(p) == n_copeland]
+    return list(
+        itertools.chain.from_iterable(
+            [p for p in preference_pairs if len(p) == n_copeland]
+        )
     )
 
 
