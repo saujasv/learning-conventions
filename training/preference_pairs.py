@@ -6,7 +6,7 @@ import itertools
 from game import RepeatedReferenceGame, Trial
 from agents.chat_speaker import ChatSpeaker
 from agents.chat_listener import ChatListener
-from agents.hf_speakers import GenerateSpeaker
+from agents.hf_speakers import GenerateSpeaker, BaseVLMGenerateSpeaker
 from agents.hf_listeners import ScoringListener
 from agents.prompts import (
     SPEAKER_SYSTEM_PROMPT_BASIC,
@@ -261,8 +261,6 @@ def run_sampling(config_path: str):
     import jsonlines
     from pydantic_core import to_jsonable_python
     from transformers import AutoModelForImageTextToText, AutoProcessor
-    from agents.hf_speakers import GenerateSpeaker
-    from agents.hf_listeners import ScoringListener
 
     with open(config_path, "r") as f:
         config = json.load(f)
@@ -274,14 +272,24 @@ def run_sampling(config_path: str):
         **config.get("speaker_model")
     )
     speaker_processor = AutoProcessor.from_pretrained(**config.get("speaker_processor"))
-    speaker = GenerateSpeaker(
-        speaker_model,
-        speaker_processor,
-        system_prompt_template=SPEAKER_SYSTEM_PROMPT_BASIC,
-        user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
-        target_prompt_template=SPEAKER_USER_PROMPT_TARGET_BASIC,
-        **config.get("speaker_config"),
-    )
+    model_type = config.get("speaker_model_type")
+    if model_type == "chat":
+        speaker = GenerateSpeaker(
+            speaker_model,
+            speaker_processor,
+            system_prompt_template=SPEAKER_SYSTEM_PROMPT_BASIC,
+            user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
+            target_prompt_template=SPEAKER_USER_PROMPT_TARGET_BASIC,
+            **config.get("speaker_config"),
+        )
+    elif model_type == "base":
+        speaker = BaseVLMGenerateSpeaker(
+            speaker_model,
+            speaker_processor,
+            **config.get("speaker_config"),
+        )
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
 
     listener_model = AutoModelForImageTextToText.from_pretrained(
         **config.get("listener_model")
