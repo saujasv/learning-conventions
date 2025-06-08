@@ -62,9 +62,6 @@ class ContrastiveDecodingProcessor(LogitsProcessor):
             padding=True,
         )
 
-        self.past_key_values = None
-        self.image_hidden_states = None
-
     def __call__(self, input_ids, scores):
         num_return_sequences = input_ids.shape[0] // self.full_inputs.input_ids.shape[0]
 
@@ -113,11 +110,7 @@ class ContrastiveDecodingProcessor(LogitsProcessor):
             .expand(-1, num_return_sequences, -1, -1, -1)
             .flatten(0, 1)
             .to(self.speaker.model.device),
-            past_key_values=self.past_key_values,
-            image_hidden_states=self.image_hidden_states,
         )
-        self.past_key_values = outputs.past_key_values
-        self.image_hidden_states = outputs.image_hidden_states
 
         p_exp = torch.nn.functional.softmax(scores, dim=-1)
         V_head = torch.ge(p_exp, self.alpha * p_exp.max(axis=1).values.unsqueeze(1))

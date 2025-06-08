@@ -198,6 +198,7 @@ def sample_game(
     select_next_trial: Optional[callable] = None,
     num_samples: Optional[int] = None,
     target_lengths: Optional[List[int]] = None,
+    context_id: Optional[str] = None,
 ):
     """
     Sample a game with multiple trials and generate preference pairs.
@@ -223,8 +224,7 @@ def sample_game(
         select_next_trial = select_next_trial_random
 
     data = list()
-    game_id = str(uuid.uuid4())
-    for tgt in tqdm(targets, desc=f"Sampling game {game_id}"):
+    for tgt in tqdm(targets, desc=f"Sampling game {context_id}"):
         sampled_trials = sample_trial(
             game,
             tgt,
@@ -242,7 +242,7 @@ def sample_game(
 
         data.append(
             {
-                "game_id": game_id,
+                "game_id": context_id,
                 "game": deepcopy(game),
                 "trial_id": str(uuid.uuid4()),
                 "sampled_trials": sampled_trials,
@@ -320,7 +320,14 @@ def run_sampling(config_path: str):
     else:
         select_next_trial_fn = select_next_trial_random
 
-    for context in contexts:
+    with jsonlines.open(config.get("save_file")) as reader:
+        completed_contexts = set(x["game_id"] for x in reader)
+
+    for context_id, context in contexts.items():
+        if context_id in completed_contexts:
+            print(f"Skipping context {context_id} because it has already been completed")
+            continue
+
         data = sample_game(
             context,
             config.get("num_trials"),
@@ -331,6 +338,7 @@ def run_sampling(config_path: str):
             select_next_trial=select_next_trial_fn,
             num_samples=config.get("num_samples"),
             target_lengths=config.get("target_lengths"),
+            context_id=context_id,
         )
 
         with jsonlines.open(config.get("save_file"), mode="a") as writer:
