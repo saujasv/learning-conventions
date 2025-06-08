@@ -25,6 +25,7 @@ from training.simulation_utils import (
 )
 from tqdm import tqdm
 import random
+from pathlib import Path
 
 # Map preference criterion names to functions
 PREFERENCE_FUNCTIONS = {
@@ -320,12 +321,19 @@ def run_sampling(config_path: str):
     else:
         select_next_trial_fn = select_next_trial_random
 
-    with jsonlines.open(config.get("save_file")) as reader:
-        completed_contexts = set(x["game_id"] for x in reader)
+    Path(config.get("save_file")).parent.mkdir(parents=True, exist_ok=True)
+
+    if Path(config.get("save_file")).exists():
+        with jsonlines.open(config.get("save_file")) as reader:
+            completed_contexts = set(x["game_id"] for x in reader)
+    else:
+        completed_contexts = set()
 
     for context_id, context in contexts.items():
         if context_id in completed_contexts:
-            print(f"Skipping context {context_id} because it has already been completed")
+            print(
+                f"Skipping context {context_id} because it has already been completed"
+            )
             continue
 
         data = sample_game(
