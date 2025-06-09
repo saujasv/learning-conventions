@@ -10,7 +10,7 @@ import pandas as pd
 from game import RepeatedReferenceGame, Trial
 from training.dpo_trainer import DPOTrainer
 from training.model_constants import get_lora_target_modules
-from agents import GenerateSpeaker
+from agents.hf_speakers import GenerateSpeaker, BaseVLMGenerateSpeaker
 from pathlib import Path
 from datasets import Dataset, Sequence, Image
 
@@ -102,13 +102,23 @@ def train(
     ################
     # Dataset
     ################
-    agent = GenerateSpeaker(
-        None,
-        processor,
-        context_presentation=kwargs.get("--context_presentation", "once"),
-        feedback_label=bool(kwargs.get("--feedback_label", "false")),
-        chat_template_file=kwargs.get("--chat_template_file", None),
-    )
+    if kwargs.get("--model_type", "chat") == "chat":
+        agent = GenerateSpeaker(
+            None,
+            processor,
+            context_presentation=kwargs.get("--context_presentation", "once"),
+            feedback_label=bool(kwargs.get("--feedback_label", "false")),
+            chat_template_file=kwargs.get("--chat_template_file", None),
+        )
+    else:
+        agent = BaseVLMGenerateSpeaker(
+            None,
+            processor,
+            context_presentation=kwargs.get("--context_presentation", "once"),
+            feedback_label=bool(kwargs.get("--feedback_label", "true")),
+            chat_template_file=kwargs.get("--chat_template_file", None),
+            demonstration_game=None,
+        )
 
     train_df = pd.read_json(
         Path(script_args.dataset_name) / "train.jsonl", lines=True, orient="records"

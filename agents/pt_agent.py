@@ -74,16 +74,20 @@ class BaseVLMAgent:
             A tuple containing the prompt messages and a list of paths to all images appearing in the messages.
         """
         if self.context_presentation == "no_history":
-            demonstration_messages = [
-                self.format_trial(
-                    self.demonstration_game.trials[-1],
-                    self.demonstration_game.context,
-                    show_images=True,
-                    trial_number=None,
-                    exclude_feedback=True,
-                    demonstration=True,
-                )
-            ]
+            if self.demonstration_game:
+                demonstration_messages = [
+                    self.format_trial(
+                        self.demonstration_game.trials[-1],
+                        self.demonstration_game.context,
+                        show_images=True,
+                        trial_number=None,
+                        exclude_feedback=True,
+                        demonstration=True,
+                    )
+                ]
+            else:
+                demonstration_messages = []
+
             trial_messages = [
                 self.format_trial(
                     repeated_reference_game.trials[-1],
@@ -100,24 +104,25 @@ class BaseVLMAgent:
         elif self.context_presentation == "once":
             demonstration_messages = list()
             show_images = True
-            for i, trial in enumerate(self.demonstration_game.trials):
-                messages = self.format_trial(
-                    trial,
-                    self.demonstration_game.context,
-                    show_images=show_images,
-                    trial_number=i + 1,
-                    exclude_feedback=(
-                        exclude_feedback_on_last
-                        if i == len(self.demonstration_game.trials) - 1
-                        else False
-                    ),
-                    is_demonstration=True,
-                )
-                if len(messages) > 0:
-                    demonstration_messages.append(messages)
-                    show_images = False
-                else:
-                    continue
+            if self.demonstration_game:
+                for i, trial in enumerate(self.demonstration_game.trials):
+                    messages = self.format_trial(
+                        trial,
+                        self.demonstration_game.context,
+                        show_images=show_images,
+                        trial_number=i + 1,
+                        exclude_feedback=(
+                            exclude_feedback_on_last
+                            if i == len(self.demonstration_game.trials) - 1
+                            else False
+                        ),
+                        is_demonstration=True,
+                    )
+                    if len(messages) > 0:
+                        demonstration_messages.append(messages)
+                        show_images = False
+                    else:
+                        continue
 
             trial_messages = list()
             show_images = True
@@ -148,33 +153,37 @@ class BaseVLMAgent:
 
             demonstration_messages = list()
             show_images = True
-            for i, trial in enumerate(self.demonstration_game.trials[:-1]):
-                messages = self.format_trial(
-                    trial,
+            if self.demonstration_game:
+                for i, trial in enumerate(self.demonstration_game.trials[:-1]):
+                    messages = self.format_trial(
+                        trial,
+                        self.demonstration_game.context,
+                        show_images=show_images,
+                        trial_number=i + 1,
+                        exclude_feedback=False,
+                        is_demonstration=True,
+                    )
+                    if len(messages) > 0:
+                        demonstration_messages.append(messages)
+                        show_images = False
+                    else:
+                        continue
+
+                last_demonstration_trial = self.demonstration_game.trials[-1]
+                last_demonstration_trial_context = random.sample(
                     self.demonstration_game.context,
-                    show_images=show_images,
-                    trial_number=i + 1,
-                    exclude_feedback=False,
+                    len(self.demonstration_game.context),
+                )
+                last_demonstration_trial_messages = self.format_trial(
+                    last_demonstration_trial,
+                    last_demonstration_trial_context,
+                    show_images=True,
+                    trial_number=len(self.demonstration_game.trials),
+                    exclude_feedback=exclude_feedback_on_last,
                     is_demonstration=True,
                 )
-                if len(messages) > 0:
-                    demonstration_messages.append(messages)
-                    show_images = False
-                else:
-                    continue
-
-            last_demonstration_trial = self.demonstration_game.trials[-1]
-            last_demonstration_trial_context = random.sample(
-                self.demonstration_game.context, len(self.demonstration_game.context)
-            )
-            last_demonstration_trial_messages = self.format_trial(
-                last_demonstration_trial,
-                last_demonstration_trial_context,
-                show_images=True,
-                trial_number=len(self.demonstration_game.trials),
-                exclude_feedback=exclude_feedback_on_last,
-                is_demonstration=True,
-            )
+            else:
+                last_demonstration_trial_messages = []
 
             trial_messages = list()
             show_images = True
@@ -212,31 +221,34 @@ class BaseVLMAgent:
         elif self.context_presentation == "last_no_shuffle":
             demonstration_messages = list()
             show_images = True
-            for i, trial in enumerate(self.demonstration_game.trials[:-1]):
-                messages = self.format_trial(
-                    trial,
-                    self.demonstration_game.context,
-                    show_images=show_images,
-                    trial_number=i + 1,
-                    exclude_feedback=False,
+            if self.demonstration_game:
+                for i, trial in enumerate(self.demonstration_game.trials[:-1]):
+                    messages = self.format_trial(
+                        trial,
+                        self.demonstration_game.context,
+                        show_images=show_images,
+                        trial_number=i + 1,
+                        exclude_feedback=False,
+                        is_demonstration=True,
+                    )
+                    if len(messages) > 0:
+                        demonstration_messages.append(messages)
+                        show_images = False
+                    else:
+                        continue
+
+                last_demonstration_trial = self.demonstration_game.trials[-1]
+                last_demonstration_trial_context = self.demonstration_game.context
+                last_demonstration_trial_messages = self.format_trial(
+                    last_demonstration_trial,
+                    last_demonstration_trial_context,
+                    show_images=True,
+                    trial_number=len(self.demonstration_game.trials),
+                    exclude_feedback=exclude_feedback_on_last,
                     is_demonstration=True,
                 )
-                if len(messages) > 0:
-                    demonstration_messages.append(messages)
-                    show_images = False
-                else:
-                    continue
-
-            last_demonstration_trial = self.demonstration_game.trials[-1]
-            last_demonstration_trial_context = self.demonstration_game.context
-            last_demonstration_trial_messages = self.format_trial(
-                last_demonstration_trial,
-                last_demonstration_trial_context,
-                show_images=True,
-                trial_number=len(self.demonstration_game.trials),
-                exclude_feedback=exclude_feedback_on_last,
-                is_demonstration=True,
-            )
+            else:
+                last_demonstration_trial_messages = []
 
             trial_messages = list()
             show_images = True
