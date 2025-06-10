@@ -117,7 +117,7 @@ def train(
             context_presentation=kwargs.get("--context_presentation", "once"),
             feedback_label=bool(kwargs.get("--feedback_label", "true")),
             chat_template_file=kwargs.get("--chat_template_file", None),
-            demonstration_game=None,
+            demonstration_game=kwargs.get("--demonstration_game", None),
         )
 
     train_df = pd.read_json(
@@ -164,7 +164,11 @@ def train(
         peft_config=get_peft_config(model_config),
     )
 
-    trainer.train()
+    if kwargs.get("--from_ckpt", False):
+        print("Resuming from checkpoint")
+        trainer.train(resume_from_checkpoint=True)
+    else:
+        trainer.train()
 
     # Save and push to hub
     trainer.save_model(training_args.output_dir)
