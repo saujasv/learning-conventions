@@ -1,0 +1,48 @@
+{
+    "context": [
+        "train2014/COCO_train2014_000000269680.jpg",
+        "train2014/COCO_train2014_000000300267.jpg",
+        "train2014/COCO_train2014_000000512961.jpg",
+        "val2014/COCO_val2014_000000195598.jpg",
+        "val2014/COCO_val2014_000000431257.jpg",
+        "val2014/COCO_val2014_000000498806.jpg"
+    ],
+    "trials": [
+        {
+            "target": "val2014/COCO_val2014_000000195598.jpg",
+            "message": "A miniature train yard with buildings, tankers, and freight cars.",
+            "interpretation": {
+                "train2014/COCO_train2014_000000269680.jpg": -3.796875,
+                "train2014/COCO_train2014_000000300267.jpg": -0.427734375,
+                "train2014/COCO_train2014_000000512961.jpg": -3.671875,
+                "val2014/COCO_val2014_000000195598.jpg": -1.3046875,
+                "val2014/COCO_val2014_000000431257.jpg": -5.6875,
+                "val2014/COCO_val2014_000000498806.jpg": -3.671875
+            }
+        },
+        {
+            "target": "train2014/COCO_train2014_000000512961.jpg",
+            "message": "A small town setting with a locomotive and detailed buildings.",
+            "interpretation": {
+                "train2014/COCO_train2014_000000269680.jpg": -3.578125,
+                "train2014/COCO_train2014_000000300267.jpg": -3.703125,
+                "train2014/COCO_train2014_000000512961.jpg": -0.07958984375,
+                "val2014/COCO_val2014_000000195598.jpg": -5.96875,
+                "val2014/COCO_val2014_000000431257.jpg": -5.46875,
+                "val2014/COCO_val2014_000000498806.jpg": -4.09375
+            }
+        },
+        {
+            "target": "train2014/COCO_train2014_000000269680.jpg",
+            "message": "A model train travels through a wooded area with rocks and a water tower.",
+            "interpretation": {
+                "train2014/COCO_train2014_000000269680.jpg": -2.40625,
+                "train2014/COCO_train2014_000000300267.jpg": -6.15625,
+                "train2014/COCO_train2014_000000512961.jpg": -4.65625,
+                "val2014/COCO_val2014_000000195598.jpg": -8.375,
+                "val2014/COCO_val2014_000000431257.jpg": -1.9140625,
+                "val2014/COCO_val2014_000000498806.jpg": -0.287109375
+            }
+        }
+    ]
+}

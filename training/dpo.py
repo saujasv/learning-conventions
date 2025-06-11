@@ -10,7 +10,7 @@ import pandas as pd
 from game import RepeatedReferenceGame, Trial
 from training.dpo_trainer import DPOTrainer
 from training.model_constants import get_lora_target_modules
-from agents import GenerateSpeaker
+from agents.hf_speakers import GenerateSpeaker, BaseVLMGenerateSpeaker
 from pathlib import Path
 from datasets import Dataset, Sequence, Image
 
@@ -102,13 +102,23 @@ def train(
     ################
     # Dataset
     ################
-    agent = GenerateSpeaker(
-        None,
-        processor,
-        context_presentation=kwargs.get("--context_presentation", "once"),
-        feedback_label=bool(kwargs.get("--feedback_label", "false")),
-        chat_template_file=kwargs.get("--chat_template_file", None),
-    )
+    if kwargs.get("--model_type", "chat") == "chat":
+        agent = GenerateSpeaker(
+            None,
+            processor,
+            context_presentation=kwargs.get("--context_presentation", "once"),
+            feedback_label=bool(kwargs.get("--feedback_label", "false")),
+            chat_template_file=kwargs.get("--chat_template_file", None),
+        )
+    else:
+        agent = BaseVLMGenerateSpeaker(
+            None,
+            processor,
+            context_presentation=kwargs.get("--context_presentation", "once"),
+            feedback_label=bool(kwargs.get("--feedback_label", "true")),
+            chat_template_file=kwargs.get("--chat_template_file", None),
+            demonstration_game=kwargs.get("--demonstration_game", None),
+        )
 
     train_df = pd.read_json(
         Path(script_args.dataset_name) / "train.jsonl", lines=True, orient="records"
@@ -123,7 +133,7 @@ def train(
     train_df = train_df.drop(columns=["game", "preference_pairs", "sampled_trials"])
 
     train_dataset = Dataset.from_pandas(train_df)
-    # train_dataset = train_dataset.cast_column("images", Sequence(Image()))
+
     validation_df = pd.read_json(
         Path(script_args.dataset_name) / "validation.jsonl",
         lines=True,
@@ -138,7 +148,6 @@ def train(
         columns=["game", "preference_pairs", "sampled_trials"]
     )
     validation_dataset = Dataset.from_pandas(validation_df)
-    # validation_dataset = validation_dataset.cast_column("images", Sequence(Image()))
 
     ################
     # Training
@@ -155,7 +164,11 @@ def train(
         peft_config=get_peft_config(model_config),
     )
 
-    trainer.train()
+    if kwargs.get("--from_ckpt", False):
+        print("Resuming from checkpoint")
+        trainer.train(resume_from_checkpoint=True)
+    else:
+        trainer.train()
 
     # Save and push to hub
     trainer.save_model(training_args.output_dir)

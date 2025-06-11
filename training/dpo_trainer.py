@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Literal, Optional, Union
 
 import pandas as pd
+import numpy as np
 import torch
 import torch.amp as amp
 import torch.nn as nn
@@ -149,13 +150,21 @@ class DataCollatorForPreference:
             torch.ones_like(input_ids) for input_ids in rejected_input_ids
         ]
         if "pixel_values" in examples[0]:
-            pixel_values = [
-                torch.as_tensor(example["pixel_values"]) for example in examples
-            ]
+            # pixel_values = [
+            #     torch.as_tensor(example["pixel_values"]) for example in examples
+            # ]
+            pixel_values_np = np.array(
+                [example["pixel_values"] for example in examples]
+            )
+            pixel_values = torch.from_numpy(pixel_values_np)
         if "pixel_attention_mask" in examples[0]:
-            pixel_attention_mask = [
-                torch.tensor(example["pixel_attention_mask"]) for example in examples
-            ]
+            # pixel_attention_mask = [
+            #     torch.tensor(example["pixel_attention_mask"]) for example in examples
+            # ]
+            pixel_attention_mask_np = np.array(
+                [example["pixel_attention_mask"] for example in examples]
+            )
+            pixel_attention_mask = torch.from_numpy(pixel_attention_mask_np)
         if "ref_chosen_logps" in examples[0] and "ref_rejected_logps" in examples[0]:
             ref_chosen_logps = torch.tensor(
                 [example["ref_chosen_logps"] for example in examples]

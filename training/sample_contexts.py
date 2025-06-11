@@ -350,3 +350,26 @@ def build_index(model_name_or_path: str, images_path: str, device: str, save_pat
         device=device,
         save_path=save_path,
     )
+
+
+def sample_contexts(
+    index_path: str,
+    save_path: str,
+    context_size: int,
+    num_contexts: int,
+    temperature: float = 0.05,
+    prefix: str = "",
+):
+    import uuid
+    import json
+
+    index = ImageSimilarityIndex.from_file(index_path)
+    sampled_contexts = dict()
+    for i in range(num_contexts):
+        context = index.sample_similar_image_set(
+            k=context_size, temperature=temperature
+        )
+        sampled_contexts[str(uuid.uuid4())] = [f"{prefix}{img}" for img in context]
+
+    with open(save_path, "w") as f:
+        json.dump(sampled_contexts, f)
