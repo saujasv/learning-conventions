@@ -165,7 +165,7 @@ def sample_trial(
         ),
         num_return_sequences=num_samples,
         target_lengths=target_lengths,
-    )
+    )[0]
 
     listener_interpretations = listener.batch_score(
         [
@@ -303,7 +303,6 @@ def run_sampling(config_path: str):
         listener_processor,
         **config.get("listener_config"),
     )
-
     preference_criterion = config.get("preference_criterion")
     if preference_criterion:
         preference_function = PREFERENCE_FUNCTIONS[preference_criterion]

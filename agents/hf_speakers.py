@@ -75,6 +75,9 @@ class GenerateSpeaker(ChatSpeaker):
         num_return_sequences: Optional[int] = None,
         target_lengths=None,
     ):
+        if isinstance(repeated_reference_games, RepeatedReferenceGame):
+            repeated_reference_games = [repeated_reference_games]
+
         # create individual tasks where each task is generating one output for one game
         if not target_lengths is None:
             assert isinstance(
