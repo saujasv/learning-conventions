@@ -69,28 +69,90 @@ class GenerateSpeaker(ChatSpeaker):
 
     @find_executable_batch_size(starting_batch_size=64)
     def batch_generate(
-        batch_size,
+        batch_size: int,
         self,
-        repeated_reference_game,
-        num_return_sequences=None,
+        repeated_reference_games: list[RepeatedReferenceGame],
+        num_return_sequences: Optional[int] = None,
         target_lengths=None,
     ):
-        if not num_return_sequences is None:
-            if target_lengths is None:
-                target_lengths = [None for _ in range(num_return_sequences)]
-            else:
-                assert len(target_lengths) == num_return_sequences
-
-        return list(
-            itertools.chain.from_iterable(
-                [
-                    self.generate(
-                        repeated_reference_game,
-                        target_lengths=batch,
-                    )
-                    for batch in itertools.batched(target_lengths, batch_size)
-                ]
+        # create individual tasks where each task is generating one output for one game
+        if not target_lengths is None:
+            assert isinstance(
+                self, GenerateSpeaker
+            ), "target_lengths is only supported for GenerateSpeaker"
+            assert (
+                num_return_sequences is None
+                or len(target_lengths) == num_return_sequences
             )
+            n_generations_per_prompt = len(target_lengths)
+            tasks = list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            {
+                                "repeated_reference_games": [g],
+                                "target_lengths": [l],
+                            }
+                            for l in target_lengths
+                        ]
+                        for g in repeated_reference_games
+                    ]
+                )
+            )
+        elif num_return_sequences:
+            n_generations_per_prompt = num_return_sequences
+            tasks = list(
+                itertools.chain.from_iterable(
+                    [
+                        [
+                            {"repeated_reference_games": [g]}
+                            for _ in range(num_return_sequences)
+                        ]
+                        for g in repeated_reference_games
+                    ]
+                )
+            )
+        else:
+            n_generations_per_prompt = 1
+            tasks = [
+                {"repeated_reference_games": [g]} for g in repeated_reference_games
+            ]
+
+        # group tasks into batches
+        task_batches = [
+            {
+                "repeated_reference_games": list(
+                    itertools.chain.from_iterable(
+                        [x["repeated_reference_games"] for x in batch]
+                    )
+                ),
+                "num_return_sequences": None,
+                "target_lengths": (
+                    list(
+                        itertools.chain.from_iterable(
+                            [x["target_lengths"] for x in batch]
+                        )
+                    )
+                    if target_lengths
+                    else None
+                ),
+            }
+            for batch in itertools.batched(tasks, batch_size)
+        ]
+
+        # generate outputs for each task in the batch
+        outputs = list(
+            itertools.chain.from_iterable(
+                [self.generate(**batch) for batch in task_batches]
+            )
+        )
+
+        # reorganize the outputs to be one list of outputs for each game
+        return list(
+            [
+                list(itertools.chain.from_iterable(b))
+                for b in itertools.batched(outputs, n_generations_per_prompt)
+            ]
         )
 
     def generate(
