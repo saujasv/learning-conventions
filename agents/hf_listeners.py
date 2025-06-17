@@ -7,6 +7,9 @@ import itertools
 from pathlib import Path
 from game import RepeatedReferenceGame, Trial
 from .chat_listener import ChatListener
+from .pt_agent import BaseVLMListener
+from transformers import PreTrainedModel, ProcessorMixin
+from typing import Any, Literal, Optional, Union
 
 
 class ScoringListener(ChatListener):
@@ -183,6 +186,10 @@ class ScoringListener(ChatListener):
             padding=True,
         )
 
+        import ipdb
+
+        ipdb.set_trace()
+
         outputs = self.model(
             **processed_inputs.to(self.model.device, self.model.dtype),
             use_cache=False,
@@ -218,6 +225,43 @@ class ScoringListener(ChatListener):
             return random.choice(repeated_reference_game.context)
         probs = self.score(repeated_reference_game)
         return max(probs.items(), key=lambda x: x[1])[0]
+
+    def encode_image(self, image_path):
+        return str(Path(self.image_base_path) / image_path)
+
+
+class BaseVLMScoringListener(BaseVLMListener, ScoringListener):
+    def __init__(
+        self,
+        model: PreTrainedModel,
+        processor: ProcessorMixin,
+        context_presentation: Literal[
+            "once", "last_shuffle", "last_no_shuffle"
+        ] = "once",
+        feedback_label: bool = True,
+        max_image_size: Optional[int] = None,
+        chat_template_file: Optional[str] = None,
+        demonstration_game: Optional[Union[RepeatedReferenceGame, str]] = None,
+    ):
+        BaseVLMListener.__init__(
+            self,
+            context_presentation=context_presentation,
+            feedback_label=feedback_label,
+            demonstration_game=demonstration_game,
+        )
+
+        self.model = model
+        self.processor = processor
+        if chat_template_file:
+            with open(chat_template_file, "r") as f:
+                self.chat_template = f.read()
+        else:
+            self.chat_template = None
+
+        self.image_base_path = os.getenv("IMAGE_BASE_PATH", "")
+        self.max_image_size = max_image_size
+
+        self.text_only_assistant = False
 
     def encode_image(self, image_path):
         return str(Path(self.image_base_path) / image_path)

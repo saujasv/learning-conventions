@@ -83,6 +83,7 @@ def sample_game(
     oracle_listener=False,
 ):
     context = sample_context(referents_pool, num_referents)
+    context_images = [add_extension(c) for c in context]
     trials = list()
     if block_structure:
         if num_blocks is None:
@@ -94,12 +95,14 @@ def sample_game(
                     descriptions[target_referent]["annotations"], min_parts, max_parts
                 )
                 selection = random.choice(context)
+                selection_image = add_extension(selection)
                 trials.append(
                     Trial(
                         target=add_extension(target_referent),
                         message=description,
-                        selection=add_extension(selection),
-                        correct=target_referent == selection,
+                        interpretation={
+                            x: 1 if x == selection_image else 0 for x in context_images
+                        },
                     )
                 )
     else:
@@ -129,18 +132,18 @@ def sample_game(
                 )
 
             selection = target_referent if oracle_listener else random.choice(context)
+            selection_image = add_extension(selection)
             trials.append(
                 Trial(
                     target=add_extension(target_referent),
                     message=description,
-                    selection=add_extension(selection),
-                    correct=target_referent == selection,
+                    interpretation={
+                        x: 1 if x == selection_image else 0 for x in context_images
+                    },
                 )
             )
 
-    return RepeatedReferenceGame(
-        context=[add_extension(c) for c in context], trials=trials
-    )
+    return RepeatedReferenceGame(context=context_images, trials=trials)
 
 
 def sample_training_games(

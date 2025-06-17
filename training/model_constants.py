@@ -4,6 +4,8 @@ from transformers import (
     Qwen2_5_VLProcessor,
     Gemma3Processor,
 )
+from agents.hf_speakers import BaseVLMGenerateSpeaker
+from agents.hf_listeners import BaseVLMScoringListener
 
 
 def get_lora_target_modules(model_config, lora_targets):
@@ -29,8 +31,12 @@ def get_lora_target_modules(model_config, lora_targets):
         return lora_targets
 
 
-def get_chat_template_features(processor):
-    if isinstance(processor, PixtralProcessor):
+def get_chat_template_features(agent):
+    processor = agent.processor
+
+    if isinstance(agent, BaseVLMScoringListener):
+        return "Image:\n", "<eos>"
+    elif isinstance(processor, PixtralProcessor):
         return "[/INST]", "[INST]"
     elif isinstance(processor, Idefics3Processor):
         return "Assistant:", "User:"

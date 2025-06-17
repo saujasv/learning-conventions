@@ -7,6 +7,7 @@ from game import RepeatedReferenceGame, Trial
 from agents.chat_speaker import ChatSpeaker
 from agents.chat_listener import ChatListener
 from agents.hf_speakers import GenerateSpeaker, BaseVLMGenerateSpeaker
+from agents.static_agents import ReplaySpeaker, OracleListener
 from agents.hf_listeners import ScoringListener
 from agents.prompts import (
     SPEAKER_SYSTEM_PROMPT_BASIC,
@@ -16,12 +17,14 @@ from agents.prompts import (
 from training.simulation_utils import (
     sequence_targets,
     sequence_targets_blocks,
+    TargetSequenceReplay,
     informativity_and_cost_preference,
     informativity_margin_and_cost_preference,
     correctness_and_cost_preference,
     informativity_preference,
     length_change_preference,
     wnr_change_preference,
+    correctness_preference,
 )
 from tqdm import tqdm
 import random
@@ -35,6 +38,7 @@ PREFERENCE_FUNCTIONS = {
     "wnr_change_preference": wnr_change_preference,
     "informativity_margin_and_cost_preference": informativity_margin_and_cost_preference,
     "correctness_and_cost_preference": correctness_and_cost_preference,
+    "correctness_preference": correctness_preference,
 }
 
 TARGET_SEQUENCE_FUNCTIONS = {
@@ -102,7 +106,9 @@ def make_preference_pairs_copeland(
     )
 
 
-def select_next_trial_random(game, sampled_trials):
+def select_next_trial_random(
+    game, sampled_trials, preference_criterion="informativity_and_cost_preference"
+):
     """
     Randomly select one of the sampled trials.
 
@@ -113,19 +119,24 @@ def select_next_trial_random(game, sampled_trials):
     Returns:
         Trial: A randomly selected trial from sampled_trials.
     """
-    return random.choice(sampled_trials)
+    return sampled_trials[
+        0
+    ]  # since the messages are assumed to be sampled independently, choosing the first always should still be a random choice
 
 
-def select_next_trial_best(game, sampled_trials):
+def select_next_trial_best(game, sampled_trials, preference_criterion=None):
     """
     Select the best trial from the sampled trials.
     """
+    if preference_criterion is None:
+        preference_criterion = PREFERENCE_FUNCTIONS["informativity_and_cost_preference"]
+
     preference_pairs = make_preference_pairs_copeland(
-        game, sampled_trials, informativity_and_cost_preference
+        game, sampled_trials, preference_criterion
     )
 
     if len(preference_pairs) == 0:
-        return random.choice(sampled_trials)
+        return sampled_trials[0]
 
     return preference_pairs[0][0]
 
@@ -235,8 +246,8 @@ def sample_game(
             target_lengths=target_lengths,
         )
         if preference_criterion is not None:
-            preference_pairs = make_preference_pairs(
-                sampled_trials, preference_criterion
+            preference_pairs = make_preference_pairs_copeland(
+                game, sampled_trials, preference_criterion
             )
         else:
             preference_pairs = None
@@ -251,7 +262,9 @@ def sample_game(
             }
         )
 
-        next_trial = select_next_trial(game, sampled_trials)
+        next_trial = select_next_trial(
+            game, sampled_trials, preference_criterion=preference_criterion
+        )
         game.trials.append(next_trial)
 
     return data
@@ -269,40 +282,49 @@ def run_sampling(config_path: str):
     with open(config.get("contexts_file"), "r") as f:
         contexts = json.load(f)
 
-    speaker_model = AutoModelForImageTextToText.from_pretrained(
-        **config.get("speaker_model")
-    )
-    speaker_processor = AutoProcessor.from_pretrained(**config.get("speaker_processor"))
-    model_type = config.get("speaker_model_type")
-    if model_type == "chat":
-        speaker = GenerateSpeaker(
-            speaker_model,
-            speaker_processor,
-            system_prompt_template=SPEAKER_SYSTEM_PROMPT_BASIC,
-            user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
-            target_prompt_template=SPEAKER_USER_PROMPT_TARGET_BASIC,
-            **config.get("speaker_config"),
-        )
-    elif model_type == "base":
-        speaker = BaseVLMGenerateSpeaker(
-            speaker_model,
-            speaker_processor,
-            **config.get("speaker_config"),
-        )
+    if config.get("speaker_model_type") == "replay":
+        speaker = ReplaySpeaker(config.get("speaker_config")["replay_data_path"])
     else:
-        raise ValueError(f"Unknown model type: {model_type}")
+        speaker_model = AutoModelForImageTextToText.from_pretrained(
+            **config.get("speaker_model")
+        )
+        speaker_processor = AutoProcessor.from_pretrained(
+            **config.get("speaker_processor")
+        )
+        speaker_model_type = config.get("speaker_model_type")
+        if speaker_model_type == "chat":
+            speaker = GenerateSpeaker(
+                speaker_model,
+                speaker_processor,
+                system_prompt_template=SPEAKER_SYSTEM_PROMPT_BASIC,
+                user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
+                target_prompt_template=SPEAKER_USER_PROMPT_TARGET_BASIC,
+                **config.get("speaker_config"),
+            )
+        elif speaker_model_type == "base":
+            speaker = BaseVLMGenerateSpeaker(
+                speaker_model,
+                speaker_processor,
+                **config.get("speaker_config"),
+            )
+        else:
+            raise ValueError(f"Unknown model type: {speaker_model_type}")
 
-    listener_model = AutoModelForImageTextToText.from_pretrained(
-        **config.get("listener_model")
-    )
-    listener_processor = AutoProcessor.from_pretrained(
-        **config.get("listener_processor")
-    )
-    listener = ScoringListener(
-        listener_model,
-        listener_processor,
-        **config.get("listener_config"),
-    )
+    listener_model_type = config.get("listener_model_type")
+    if listener_model_type == "oracle":
+        listener = OracleListener()
+    else:
+        listener_model = AutoModelForImageTextToText.from_pretrained(
+            **config.get("listener_model")
+        )
+        listener_processor = AutoProcessor.from_pretrained(
+            **config.get("listener_processor")
+        )
+        listener = ScoringListener(
+            listener_model,
+            listener_processor,
+            **config.get("listener_config"),
+        )
 
     preference_criterion = config.get("preference_criterion")
     if preference_criterion:
@@ -310,8 +332,10 @@ def run_sampling(config_path: str):
     else:
         preference_function = None
     target_sequence_type = config.get("target_sequence_function")
-    if target_sequence_type:
+    if target_sequence_type in TARGET_SEQUENCE_FUNCTIONS:
         target_sequence_function = TARGET_SEQUENCE_FUNCTIONS[target_sequence_type]
+    elif Path(target_sequence_type).exists():
+        target_sequence_function = TargetSequenceReplay(target_sequence_type)
     else:
         target_sequence_function = None
 
@@ -381,6 +405,8 @@ def run_preference_pairs(
             ),
         )
 
+    Path(save_file).parent.mkdir(parents=True, exist_ok=True)
+
     with jsonlines.open(save_file, "w") as writer:
         writer.write_all(to_jsonable_python(data))
 
@@ -412,6 +438,8 @@ def run_preference_pairs_copeland(
                 game, trial1, trial2, **preference_criterion_kwargs
             ),
         )
+
+    Path(save_file).parent.mkdir(parents=True, exist_ok=True)
 
     with jsonlines.open(save_file, "w") as writer:
         writer.write_all(to_jsonable_python(data))

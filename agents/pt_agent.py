@@ -16,7 +16,7 @@ class BaseVLMAgent:
             "trial_shuffle",
             "block_shuffle",
         ] = "once",
-        feedback_label: bool = False,
+        feedback_label: bool = True,
         demonstration_game: Optional[Union[RepeatedReferenceGame, str]] = None,
     ):
         # presentation of images and prior trials of the game in the context
@@ -213,7 +213,7 @@ class BaseVLMAgent:
                 exclude_feedback=exclude_feedback_on_last,
             )
             messages = [
-                *demonstration_messages,
+                *itertools.chain.from_iterable(demonstration_messages),
                 *last_demonstration_trial_messages,
                 *itertools.chain.from_iterable(trial_messages),
                 *last_trial_messages,
@@ -435,7 +435,7 @@ class BaseVLMSpeaker(BaseVLMAgent):
                                 {
                                     "type": "text",
                                     "text": (
-                                        f"Feedback: Incorrect answer {self.get_label(context, trial.get_selection(), is_demonstration)}."
+                                        f"Feedback: Incorrect answer. Correct answer is {self.get_label(context, trial.get_target(), is_demonstration)}."  # noqa: E501
                                         if self.feedback_label
                                         else "Feedback: Incorrect answer."
                                     ),
@@ -474,3 +474,164 @@ class BaseVLMSpeaker(BaseVLMAgent):
                 collapsed_messages.append(m)
 
         return collapsed_messages
+
+
+class BaseVLMListener(BaseVLMAgent):
+    def __init__(self, tangrams=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.tangrams = tangrams
+
+    def get_label(
+        self, context: Tuple[str], item: Optional[str], is_demonstration: bool = True
+    ):
+        if item is None:
+            return "Invalid"
+        elif is_demonstration:
+            return chr(ord("M") + context.index(item))
+        else:
+            return chr(ord("A") + context.index(item))
+
+    def format_trial(
+        self,
+        trial: Trial,
+        context: Tuple[str],
+        show_images: bool = False,
+        trial_number: Optional[int] = None,
+        exclude_feedback: bool = False,
+        is_demonstration: bool = False,
+    ):
+        if not trial.get_correct() is None and trial.get_message() is None:
+            return list()
+
+        if trial_number is not None:
+            trial_prompt = [{"type": "text", "text": f"Round {trial_number}, "}]
+        else:
+            trial_prompt = [{"type": "text", "text": f"Current round, "}]
+
+        if show_images:
+            images_prompt = itertools.chain.from_iterable(
+                [
+                    [
+                        {
+                            "type": "text",
+                            "text": f"\nImage {self.get_label(context, image, is_demonstration)}: ",
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": self.encode_image(image),
+                            },
+                        },
+                    ]
+                    for image in context
+                ]
+            )
+        else:
+            images_prompt = []
+
+        message_prompt = [
+            {
+                "type": "text",
+                "text": f"\nDescription: {trial.get_message()}\nImage:",  # noqa: E501
+            }
+        ]
+
+        if not trial.get_correct() is None:
+            if self.text_only_assistant:
+                selection_prompt = [
+                    {
+                        "role": "assistant",
+                        "content": f"{self.get_label(context, trial.get_selection(), is_demonstration)}.",  # noqa: E501
+                    }
+                ]
+            else:
+                selection_prompt = [
+                    {
+                        "role": "assistant",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": f"{self.get_label(context, trial.get_selection(), is_demonstration)}.",  # noqa: E501
+                            }
+                        ],
+                    }
+                ]
+
+            if not exclude_feedback:
+                if trial.get_correct() is None:
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": f"Feedback: Invalid answer.",
+                                }
+                            ],
+                        }
+                    ]
+                elif trial.get_correct():
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": f"Feedback: Correct answer {self.get_label(context, trial.get_selection(), is_demonstration)}.",  # noqa: E501
+                                }
+                            ],
+                        }
+                    ]
+                else:
+                    feedback_prompt = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": (
+                                        f"Feedback: Incorrect answer. Correct answer is {self.get_label(context, trial.get_target(), is_demonstration)}."  # noqa: E501
+                                        if self.feedback_label
+                                        else "Feedback: Incorrect answer."
+                                    ),
+                                }
+                            ],
+                        }
+                    ]
+            else:
+                feedback_prompt = []
+        else:
+            selection_prompt = []
+            feedback_prompt = []
+
+        return [
+            {
+                "role": "user",
+                "content": [
+                    *trial_prompt,
+                    *images_prompt,
+                    *message_prompt,
+                ],
+            },
+            *selection_prompt,
+            *feedback_prompt,
+        ]
+
+    def validate_response(self, response, context):
+        if not isinstance(response, str):
+            return None
+
+        selection_idx = ord(response[0].upper()) - ord("A")
+
+        if selection_idx < 0 or selection_idx >= len(context):
+            return None
+
+        return context[selection_idx]
+
+    def select(self, repeated_reference_game):
+        if repeated_reference_game.trials[-1].get_message() is None:
+            return random.choice(repeated_reference_game.context)
+        messages, context = self.construct_prompt_messages(repeated_reference_game)
+        response = self.api_call(messages)
+        return self.validate_response(response, context)

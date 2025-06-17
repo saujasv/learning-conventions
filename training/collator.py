@@ -31,7 +31,7 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
             mlm=False,
         )
         self.response_template, self.instruction_template = get_chat_template_features(
-            agent.processor
+            agent
         )
 
         if isinstance(self.instruction_template, str):
@@ -208,16 +208,14 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
             [x["messages"] for x in examples], chat_template=self.agent.chat_template
         )
         images = [
-            [
-                Image.open(img).convert("RGB")
-                for img in self.agent.get_images(x["messages"])
-            ]
+            [Image.open(img).convert("RGB") for img in x["image_paths"]]
             for x in examples
         ]
         processed = self.agent.processor(
             text=text, images=images, return_tensors="pt", padding=True
         )
         collated_batch = self.torch_call(processed)
+
         return collated_batch
 
     # def __call__(self, examples):

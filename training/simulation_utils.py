@@ -4,6 +4,7 @@ import random
 from game import RepeatedReferenceGame, Trial
 import spacy
 from Levenshtein import distance as edit_distance
+import jsonlines
 
 nlp = spacy.load("en_core_web_sm")
 
@@ -83,6 +84,28 @@ def sequence_targets_blocks(context: List[str], num_trials: int) -> List[str]:
     return targets
 
 
+class TargetSequenceReplay:
+    def __init__(self, replay_data_path: str):
+        with jsonlines.open(replay_data_path) as reader:
+            replay_data = list(reader)
+
+        self.context2targets = dict()
+        for x in replay_data:
+            context = ",".join(sorted(x["game"]["context"]))
+            if context not in self.context2targets:
+                self.context2targets[context] = [
+                    t["target"] for t in x["game"]["trials"]
+                ]
+            else:
+                targets = [t["target"] for t in x["game"]["trials"]]
+                if len(targets) > len(self.context2targets[context]):
+                    self.context2targets[context] = targets
+
+    def __call__(self, context: List[str], num_trials: int) -> List[str]:
+        context_str = ",".join(sorted(context))
+        return self.context2targets[context_str]
+
+
 def informativity_preference(game: RepeatedReferenceGame, trial1: Trial, trial2: Trial):
     """
     Determine if trial1 is preferred over trial2 based on informativity.
@@ -98,6 +121,23 @@ def informativity_preference(game: RepeatedReferenceGame, trial1: Trial, trial2:
         trial1.get_interpretation()[trial1.get_target()]
         > trial2.get_interpretation()[trial2.get_target()]
     ):
+        return True
+
+    return False
+
+
+def correctness_preference(game: RepeatedReferenceGame, trial1: Trial, trial2: Trial):
+    """
+    Determine if trial1 is preferred over trial2 based on correctness.
+
+    Args:
+        game (RepeatedReferenceGame): Game with all previous trials.
+        trial1 (Trial): First trial.
+        trial2 (Trial): Second trial.
+    Returns:
+        bool: True if trial1 is preferred, False otherwise.
+    """
+    if trial1.get_correct():
         return True
 
     return False
@@ -174,7 +214,26 @@ def correctness_and_cost_preference(
     """
     num_tokens1 = len(nlp(trial1.get_message()))
     num_tokens2 = len(nlp(trial2.get_message()))
-    if trial1.get_correct() and not trial2.get_correct() and num_tokens1 < num_tokens2:
+    if trial1.get_correct() and num_tokens1 < num_tokens2:
+        return True
+
+    return False
+
+
+def cost_preference(game: RepeatedReferenceGame, trial1: Trial, trial2: Trial):
+    """
+    Determine if trial1 is preferred over trial2 based on cost.
+
+    Args:
+        game (RepeatedReferenceGame): Game with all previous trials.
+        trial1 (Trial): First trial.
+        trial2 (Trial): Second trial.
+    Returns:
+        bool: True if trial1 is preferred, False otherwise.
+    """
+    num_tokens1 = len(nlp(trial1.get_message()))
+    num_tokens2 = len(nlp(trial2.get_message()))
+    if num_tokens1 < num_tokens2:
         return True
 
     return False
