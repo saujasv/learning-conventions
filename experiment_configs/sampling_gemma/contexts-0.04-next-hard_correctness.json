@@ -1,0 +1,48 @@
+{
+    "speaker_model": {
+        "pretrained_model_name_or_path": "google/gemma-3-12b-pt",
+        "device_map": "cuda:0",
+        "torch_dtype": "bfloat16",
+        "attn_implementation": "flash_attention_2"
+    },
+    "speaker_processor": {
+        "pretrained_model_name_or_path": "google/gemma-3-12b-pt"
+    },
+    "speaker_model_type": "base",
+    "speaker_config": {
+        "generation_config": {
+            "do_sample": true,
+            "max_new_tokens": 64,
+            "temperature": 1.0,
+            "top_p": 0.95
+        },
+        "context_presentation": "once",
+        "chat_template_file": "agents/gemma-3-pt-chat-template.jinja",
+        "contrastive_decoding": false,
+        "demonstration_game": "data/coco-4-image-contexts/demo.json"
+    },
+    "listener_model": {
+        "pretrained_model_name_or_path": "saujasv/gemma-pt-coco-4-images-listener",
+        "device_map": "cuda:1",
+        "torch_dtype": "bfloat16",
+        "attn_implementation": {
+            "text_config": "flash_attention_2"
+        }
+    },
+    "listener_processor": {
+        "pretrained_model_name_or_path": "google/gemma-3-12b-pt"
+    },
+    "listener_config": {
+        "feedback_label": true,
+        "context_presentation": "last_shuffle",
+        "chat_template_file": "agents/gemma-3-pt-chat-template.jinja"
+    },
+    "num_trials": 20,
+    "num_samples": 4,
+    "target_lengths": null,
+    "target_sequence_function": "sequence_targets_blocks",
+    "contexts_file": "data/coco-4-image-contexts/coco_train-contexts-0.04-50.json",
+    "save_file": "results/sampling_gemma/samples-speaker=gemma_pt-listener=gemma_ft-contexts=0.04-next=hard_correctness.jsonl",
+    "select_next_trial": "select_next_trial_best",
+    "preference_criterion": "hard_correctness_preference"
+}
