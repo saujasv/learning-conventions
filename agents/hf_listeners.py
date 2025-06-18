@@ -186,10 +186,6 @@ class ScoringListener(ChatListener):
             padding=True,
         )
 
-        import ipdb
-
-        ipdb.set_trace()
-
         outputs = self.model(
             **processed_inputs.to(self.model.device, self.model.dtype),
             use_cache=False,

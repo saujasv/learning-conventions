@@ -23,8 +23,12 @@ from training.simulation_utils import (
     correctness_and_cost_preference,
     informativity_preference,
     length_change_preference,
+    sequence_targets_blocks_controlled,
     wnr_change_preference,
     correctness_preference,
+    hard_correctness_preference,
+    hard_correctness_and_cost_preference,
+    cost_preference,
 )
 from tqdm import tqdm
 import random
@@ -39,11 +43,15 @@ PREFERENCE_FUNCTIONS = {
     "informativity_margin_and_cost_preference": informativity_margin_and_cost_preference,
     "correctness_and_cost_preference": correctness_and_cost_preference,
     "correctness_preference": correctness_preference,
+    "hard_correctness_preference": hard_correctness_preference,
+    "hard_correctness_and_cost_preference": hard_correctness_and_cost_preference,
+    "cost_preference": cost_preference,
 }
 
 TARGET_SEQUENCE_FUNCTIONS = {
     "sequence_targets": sequence_targets,
     "sequence_targets_blocks": sequence_targets_blocks,
+    "sequence_targets_blocks_controlled": sequence_targets_blocks_controlled,
 }
 
 
@@ -170,13 +178,15 @@ def sample_trial(
         List[Tuple[Trial, Trial]]: List of preference pairs where the first trial is preferred over the second.
     """
     sampled_messages = speaker.batch_generate(
-        RepeatedReferenceGame(
-            context=game.context,
-            trials=[*game.trials, Trial(target=target)],
-        ),
+        [
+            RepeatedReferenceGame(
+                context=game.context,
+                trials=[*game.trials, Trial(target=target)],
+            )
+        ],
         num_return_sequences=num_samples,
         target_lengths=target_lengths,
-    )
+    )[0]
 
     listener_interpretations = listener.batch_score(
         [

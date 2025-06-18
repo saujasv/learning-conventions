@@ -63,7 +63,9 @@ def sequence_targets(context: List[str], num_trials: int) -> List[str]:
     return targets
 
 
-def sequence_targets_blocks(context: List[str], num_trials: int) -> List[str]:
+def sequence_targets_blocks_controlled(
+    context: List[str], num_trials: int
+) -> List[str]:
     """
     Generate a sequence of targets based on the context.
 
@@ -80,6 +82,24 @@ def sequence_targets_blocks(context: List[str], num_trials: int) -> List[str]:
     for c in control_targets:
         targets.extend(random.sample([*repeated_targets, c], len(repeated_targets) + 1))
     targets.extend(random.sample(repeated_targets, len(repeated_targets)))
+
+    return targets
+
+
+def sequence_targets_blocks(context: List[str], num_trials: int) -> List[str]:
+    """
+    Generate a sequence of targets based on the context.
+
+    Args:
+        context (List[str]): List of items in the context.
+        num_trials (int): Number of trials to generate.
+    Returns:
+        List[str]: List of target items.
+    """
+    num_blocks = num_trials // len(context)
+    targets = list()
+    for i in range(num_blocks):
+        targets.extend(random.sample(context, len(context)))
 
     return targets
 
@@ -138,6 +158,46 @@ def correctness_preference(game: RepeatedReferenceGame, trial1: Trial, trial2: T
         bool: True if trial1 is preferred, False otherwise.
     """
     if trial1.get_correct():
+        return True
+
+    return False
+
+
+def hard_correctness_preference(
+    game: RepeatedReferenceGame, trial1: Trial, trial2: Trial
+):
+    """
+    Determine if trial1 is preferred over trial2 based on correctness.
+
+    Args:
+        game (RepeatedReferenceGame): Game with all previous trials.
+        trial1 (Trial): First trial.
+        trial2 (Trial): Second trial.
+    Returns:
+        bool: True if trial1 is preferred, False otherwise.
+    """
+    if trial1.get_correct() and not trial2.get_correct():
+        return True
+
+    return False
+
+
+def hard_correctness_and_cost_preference(
+    game: RepeatedReferenceGame, trial1: Trial, trial2: Trial
+):
+    """
+    Determine if trial1 is preferred over trial2 based on correctness.
+
+    Args:
+        game (RepeatedReferenceGame): Game with all previous trials.
+        trial1 (Trial): First trial.
+        trial2 (Trial): Second trial.
+    Returns:
+        bool: True if trial1 is preferred, False otherwise.
+    """
+    num_tokens1 = len(nlp(trial1.get_message()))
+    num_tokens2 = len(nlp(trial2.get_message()))
+    if trial1.get_correct() and not trial2.get_correct() and num_tokens1 < num_tokens2:
         return True
 
     return False
