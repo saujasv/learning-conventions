@@ -1,6 +1,6 @@
 {
     "speaker_model": {
-        "pretrained_model_name_or_path": "google/gemma-3-12b-pt",
+        "pretrained_model_name_or_path": "/data/tir/projects/tir3/users/svadugur/learning-conventions/models/hard_correctness-speaker=gemma_pt-listener=gemma_ft-5134962/checkpoint-266",
         "device_map": "cuda:0",
         "torch_dtype": "bfloat16",
         "attn_implementation": "flash_attention_2"
@@ -40,9 +40,8 @@
     "num_trials": 20,
     "num_samples": 4,
     "target_lengths": null,
-    "target_sequence_function": "sequence_targets_blocks",
-    "contexts_file": "data/coco-4-image-contexts/coco_train-contexts-0.01-50.json",
-    "save_file": "results/sampling_gemma/samples-speaker=gemma_pt-listener=gemma_ft-contexts=0.01-next=correctness_and_cost.jsonl",
-    "select_next_trial": "select_next_trial_best",
-    "preference_criterion": "correctness_and_cost_preference"
+    "target_sequence_function": "results/human-human-games.jsonl",
+    "contexts_file": "data/coco-4-image-contexts/coco_val-contexts-human_human-54.json",
+    "save_file": "results/sampling_gemma_eval/samples-speaker=hard_correctness_1ep-listener=gemma_ft-contexts=human_human-next=random.jsonl",
+    "select_next_trial": "select_next_trial_random"
 }

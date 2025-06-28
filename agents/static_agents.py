@@ -8,27 +8,32 @@ class ReplaySpeaker:
         with jsonlines.open(replay_data_path) as reader:
             replay_data = list(reader)
 
-        self.game_state_to_samples = dict()
+        self.game_id_to_samples = dict()
         for x in replay_data:
-            context = ",".join(sorted(x["game"]["context"]))
-            messages = [t["message"] for t in x["game"]["trials"]]
-            self.game_state_to_samples[f"{context};{'|'.join(messages)}"] = [
-                t["message"] for t in x["sampled_trials"]
-            ]
+            if x["game_id"] not in self.game_id_to_samples:
+                self.game_id_to_samples[x["game_id"]] = list()
+            self.game_id_to_samples[x["game_id"]].append(
+                [t["message"] for t in x["sampled_trials"]]
+            )
 
     def batch_generate(
         self,
-        game: RepeatedReferenceGame,
+        games: list[RepeatedReferenceGame],
         num_return_sequences: Optional[int] = None,
         target_lengths: Optional[List[int]] = None,
+        context_ids: Optional[str] = None,
     ):
-        context = ",".join(sorted(game.context))
-        messages = [t.message for t in game.trials if t.message]
-        game_state_key = f"{context};{'|'.join(messages)}"
-        if num_return_sequences:
-            return [self.game_state_to_samples[game_state_key][:num_return_sequences]]
-        else:
-            return [self.game_state_to_samples[game_state_key]]
+        responses = list()
+        for game, ctx_id in zip(games, context_ids):
+            if num_return_sequences:
+                responses.append(
+                    self.game_id_to_samples[ctx_id][len(game.trials) - 1][
+                        :num_return_sequences
+                    ]
+                )
+            else:
+                responses.append(self.game_id_to_samples[ctx_id][len(game.trials) - 1])
+        return responses
 
 
 class OracleListener:

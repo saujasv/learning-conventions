@@ -17,6 +17,6 @@ echo "Unzipped COCO2014."
 
 export IMAGE_BASE_PATH=/scratch/svadugur/${SLURM_JOB_ID}/COCO2014
 
-python -m fire training/preference_pairs.py run_sampling experiment_configs/sampling_gemma/contexts-${CTX}-next-${NEXT}.json
+python -m fire training/preference_pairs.py run_sampling experiment_configs/sampling_gemma/$CONFIG_FILE
 
 rm -rf /scratch/svadugur/${SLURM_JOB_ID}/

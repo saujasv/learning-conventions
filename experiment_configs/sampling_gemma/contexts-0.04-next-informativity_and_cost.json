@@ -41,8 +41,8 @@
     "num_samples": 4,
     "target_lengths": null,
     "target_sequence_function": "sequence_targets_blocks",
-    "contexts_file": "data/coco-4-image-contexts/coco_train-contexts-0.01-50.json",
-    "save_file": "results/sampling_gemma/samples-speaker=gemma_pt-listener=gemma_ft-contexts=0.01-next=correctness_and_cost.jsonl",
+    "contexts_file": "data/coco-4-image-contexts/coco_train-contexts-0.04-50.json",
+    "save_file": "results/sampling_gemma/samples-speaker=gemma_pt-listener=gemma_ft-contexts=0.04-next=informativity_and_cost.jsonl",
     "select_next_trial": "select_next_trial_best",
-    "preference_criterion": "correctness_and_cost_preference"
+    "preference_criterion": "informativity_and_cost_preference"
 }

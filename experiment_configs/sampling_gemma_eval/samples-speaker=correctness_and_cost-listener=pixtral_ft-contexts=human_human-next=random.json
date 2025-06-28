@@ -1,6 +1,6 @@
 {
     "speaker_model": {
-        "pretrained_model_name_or_path": "google/gemma-3-12b-pt",
+        "pretrained_model_name_or_path": "/data/tir/projects/tir3/users/svadugur/learning-conventions/models/correctness_and_cost-speaker=gemma_pt-listener=gemma_ft-5134961/checkpoint-100",
         "device_map": "cuda:0",
         "torch_dtype": "bfloat16",
         "attn_implementation": "flash_attention_2"
@@ -22,7 +22,7 @@
         "demonstration_game": "data/coco-4-image-contexts/demo.json"
     },
     "listener_model": {
-        "pretrained_model_name_or_path": "saujasv/gemma-pt-coco-4-images-listener",
+        "pretrained_model_name_or_path": "saujasv/pixtral-coco-4-images-listener",
         "device_map": "cuda:1",
         "torch_dtype": "bfloat16",
         "attn_implementation": {
@@ -30,19 +30,18 @@
         }
     },
     "listener_processor": {
-        "pretrained_model_name_or_path": "google/gemma-3-12b-pt"
+        "pretrained_model_name_or_path": "saujasv/pixtral-12b"
     },
     "listener_config": {
         "feedback_label": true,
         "context_presentation": "last_shuffle",
-        "chat_template_file": "agents/gemma-3-pt-chat-template.jinja"
+        "chat_template_file": "agents/pixtral-chat-template.jinja"
     },
     "num_trials": 20,
     "num_samples": 4,
     "target_lengths": null,
-    "target_sequence_function": "sequence_targets_blocks",
-    "contexts_file": "data/coco-4-image-contexts/coco_train-contexts-0.01-50.json",
-    "save_file": "results/sampling_gemma/samples-speaker=gemma_pt-listener=gemma_ft-contexts=0.01-next=correctness_and_cost.jsonl",
-    "select_next_trial": "select_next_trial_best",
-    "preference_criterion": "correctness_and_cost_preference"
+    "target_sequence_function": "results/human-human-games.jsonl",
+    "contexts_file": "data/coco-4-image-contexts/coco_val-contexts-human_human-54.json",
+    "save_file": "results/sampling_gemma_eval/samples-speaker=correctness_and_cost_1ep-listener=pixtral_ft-contexts=human_human-next=random.jsonl",
+    "select_next_trial": "select_next_trial_random"
 }

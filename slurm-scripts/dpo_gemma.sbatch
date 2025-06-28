@@ -18,11 +18,11 @@ export NCCL_P2P_DISABLE=1
 
 export WANDB_PROJECT="tangrams"
 
-# sbatch --partition=general --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=correctness_and_cost-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
-# sbatch --partition=general --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=informativity-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
-# sbatch --partition=preempt --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=cost-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
-# sbatch --partition=preempt --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=correctness-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
-# sbatch --partition=preempt --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=hard_correctness-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
+# sbatch --partition=general -x babel-13-33,babel-12-21 --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=hard_correctness_or_cost-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
+# sbatch --partition=general -x babel-13-33,babel-12-21 --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=cost-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
+# sbatch --partition=preempt -x babel-13-33 --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=cost-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
+# sbatch --partition=preempt -x babel-13-33 --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=informativity_and_cost-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
+# sbatch --partition=preempt -x babel-13-33 --export="DATASET_BASE_PATH=results/preference_pairs_gemma,RUN_NAME=informativity-speaker=gemma_pt-listener=gemma_ft,ALL" slurm-scripts/dpo_gemma.sbatch
 
 echo "Unzipping COCO2014..."
 mkdir -p /scratch/svadugur/${SLURM_JOB_ID}/COCO2014; unzip -q /data/tir/projects/tir3/users/svadugur/learning-conventions/COCO2014/train2014.zip -d /scratch/svadugur/${SLURM_JOB_ID}/COCO2014; unzip -q /data/tir/projects/tir3/users/svadugur/learning-conventions/COCO2014/val2014.zip -d /scratch/svadugur/${SLURM_JOB_ID}/COCO2014
@@ -50,18 +50,16 @@ accelerate launch --main_process_port $PORT --config_file experiment_configs/dee
     --model_name_or_path google/gemma-3-12b-pt \
     --bf16 \
     --learning_rate 5e-6 \
-    --gradient_accumulation_steps 8 \
+    --gradient_accumulation_steps 4 \
     --torch_dtype bfloat16 \
-    --eval_on_start \
     --eval_strategy steps \
-    --eval_steps 0.02 \
+    --eval_steps 40 \
     --save_strategy steps \
-    --save_steps 0.02 \
+    --save_steps 40 \
     --logging_strategy steps \
     --logging_steps 1 \
-    --num_train_epochs 10 \
-    --load_best_model_at_end \
-    --metric_for_best_model 'rewards/margins' \
+    --num_train_epochs 1 \
+    --warmup_ratio 0.05 \
     --chat_template_file agents/gemma-3-pt-chat-template.jinja \
     --model_type base \
     --context_presentation once \

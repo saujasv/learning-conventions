@@ -1,0 +1,28 @@
+{
+    "speaker_model_type": "replay",
+    "speaker_config": {
+        "replay_data_path": "results/human-human-games.jsonl"
+    },
+    "listener_model": {
+        "pretrained_model_name_or_path": "saujasv/pixtral-coco-4-images-listener",
+        "device_map": "cuda:0",
+        "torch_dtype": "bfloat16",
+        "attn_implementation": {
+            "text_config": "flash_attention_2"
+        }
+    },
+    "listener_processor": {
+        "pretrained_model_name_or_path": "saujasv/pixtral-12b"
+    },
+    "listener_config": {
+        "feedback_label": true,
+        "context_presentation": "last_shuffle",
+        "chat_template_file": "agents/pixtral-chat-template.jinja"
+    },
+    "num_trials": 20,
+    "num_samples": 4,
+    "target_lengths": null,
+    "target_sequence_function": "results/human-human-games.jsonl",
+    "contexts_file": "data/coco-4-image-contexts/coco_val-contexts-human_human-54.json",
+    "save_file": "results/sampling_gemma_eval/samples-speaker=human-listener=pixtral_ft-contexts=human-human-next=random.jsonl"
+}
