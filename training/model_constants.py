@@ -36,6 +36,8 @@ def get_chat_template_features(agent):
 
     if isinstance(agent, BaseVLMScoringListener):
         return "Image:\n", "<eos>"
+    elif isinstance(agent, BaseVLMGenerateSpeaker):
+        return " description:\n", "\nFeedback"
     elif isinstance(processor, PixtralProcessor):
         return "[/INST]", "[INST]"
     elif isinstance(processor, Idefics3Processor):

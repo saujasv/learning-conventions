@@ -366,7 +366,7 @@ class BaseVLMSpeaker(BaseVLMAgent):
         target_prompt = [
             {
                 "type": "text",
-                "text": f"Image {self.get_label(context, trial.get_target(), is_demonstration)}: ",
+                "text": f"Image {self.get_label(context, trial.get_target(), is_demonstration)} description: ",
             }
         ]
 

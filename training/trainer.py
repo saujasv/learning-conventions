@@ -107,7 +107,6 @@ def train(
                 None,
                 processor,
                 context_presentation=kwargs.get("--context_presentation", "once"),
-                use_length_token=bool(kwargs.get("--use_length_token", "false")),
                 feedback_label=bool(kwargs.get("--feedback_label", "true")),
                 chat_template_file=kwargs.get("--chat_template_file", None),
                 demonstration_game=kwargs.get("--demonstration_game", None),
@@ -148,7 +147,9 @@ def train(
 
     max_image_size = kwargs.get("--max_image_size", None)
     collator = RepeatedReferenceGameCollator(
-        agent, max_image_size=int(max_image_size) if max_image_size else None
+        agent,
+        max_image_size=int(max_image_size) if max_image_size else None,
+        mask_only_last=(agent.context_presentation != "once"),
     )
 
     dataset = load_dataset(

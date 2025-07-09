@@ -111,19 +111,17 @@ class TargetSequenceReplay:
 
         self.context2targets = dict()
         for x in replay_data:
-            context = ",".join(sorted(x["game"]["context"]))
-            if context not in self.context2targets:
-                self.context2targets[context] = [
+            if x["game_id"] not in self.context2targets:
+                self.context2targets[x["game_id"]] = [
                     t["target"] for t in x["game"]["trials"]
                 ]
             else:
                 targets = [t["target"] for t in x["game"]["trials"]]
-                if len(targets) > len(self.context2targets[context]):
-                    self.context2targets[context] = targets
+                if len(targets) > len(self.context2targets[x["game_id"]]):
+                    self.context2targets[x["game_id"]] = targets
 
-    def __call__(self, context: List[str], num_trials: int) -> List[str]:
-        context_str = ",".join(sorted(context))
-        return self.context2targets[context_str]
+    def __call__(self, context: List[str], num_trials: int, game_id: str) -> List[str]:
+        return self.context2targets[game_id]
 
 
 def informativity_preference(game: RepeatedReferenceGame, trial1: Trial, trial2: Trial):
@@ -198,6 +196,29 @@ def hard_correctness_and_cost_preference(
     num_tokens1 = len(nlp(trial1.get_message()))
     num_tokens2 = len(nlp(trial2.get_message()))
     if trial1.get_correct() and not trial2.get_correct() and num_tokens1 < num_tokens2:
+        return True
+
+    return False
+
+
+def hard_correctness_or_cost_preference(
+    game: RepeatedReferenceGame, trial1: Trial, trial2: Trial
+):
+    """
+    Determine if trial1 is preferred over trial2 based on correctness.
+
+    Args:
+        game (RepeatedReferenceGame): Game with all previous trials.
+        trial1 (Trial): First trial.
+        trial2 (Trial): Second trial.
+    Returns:
+        bool: True if trial1 is preferred, False otherwise.
+    """
+    num_tokens1 = len(nlp(trial1.get_message()))
+    num_tokens2 = len(nlp(trial2.get_message()))
+    if trial1.get_correct() and (
+        (num_tokens1 < num_tokens2) or (not trial2.get_correct())
+    ):
         return True
 
     return False

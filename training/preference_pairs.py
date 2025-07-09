@@ -9,6 +9,7 @@ from agents.chat_listener import ChatListener
 from agents.hf_speakers import GenerateSpeaker, BaseVLMGenerateSpeaker
 from agents.static_agents import ReplaySpeaker, OracleListener
 from agents.hf_listeners import ScoringListener
+from agents.openai_api_agent import OpenAIAPIListener
 from agents.prompts import (
     SPEAKER_SYSTEM_PROMPT_BASIC,
     SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
@@ -28,6 +29,7 @@ from training.simulation_utils import (
     correctness_preference,
     hard_correctness_preference,
     hard_correctness_and_cost_preference,
+    hard_correctness_or_cost_preference,
     cost_preference,
 )
 from tqdm import tqdm
@@ -45,6 +47,7 @@ PREFERENCE_FUNCTIONS = {
     "correctness_preference": correctness_preference,
     "hard_correctness_preference": hard_correctness_preference,
     "hard_correctness_and_cost_preference": hard_correctness_and_cost_preference,
+    "hard_correctness_or_cost_preference": hard_correctness_or_cost_preference,
     "cost_preference": cost_preference,
 }
 
@@ -162,6 +165,7 @@ def sample_trial(
     listener: ChatListener,
     num_samples: Optional[int] = None,
     target_lengths: Optional[List[int]] = None,
+    context_id: Optional[str] = None,
 ) -> List[Trial]:
     """
     Generate samples for one trial of the game and create preference pairs.
@@ -177,16 +181,28 @@ def sample_trial(
         List[Trial]: List of sampled trials.
         List[Tuple[Trial, Trial]]: List of preference pairs where the first trial is preferred over the second.
     """
-    sampled_messages = speaker.batch_generate(
-        [
-            RepeatedReferenceGame(
-                context=game.context,
-                trials=[*game.trials, Trial(target=target)],
-            )
-        ],
-        num_return_sequences=num_samples,
-        target_lengths=target_lengths,
-    )[0]
+    if isinstance(speaker, ReplaySpeaker):
+        sampled_messages = speaker.batch_generate(
+            [
+                RepeatedReferenceGame(
+                    context=game.context,
+                    trials=[*game.trials, Trial(target=target)],
+                )
+            ],
+            num_return_sequences=num_samples,
+            context_ids=[context_id],
+        )[0]
+    else:
+        sampled_messages = speaker.batch_generate(
+            [
+                RepeatedReferenceGame(
+                    context=game.context,
+                    trials=[*game.trials, Trial(target=target)],
+                )
+            ],
+            num_return_sequences=num_samples,
+            target_lengths=target_lengths,
+        )[0]
 
     listener_interpretations = listener.batch_score(
         [
@@ -239,6 +255,8 @@ def sample_game(
 
     if target_sequence_function is None:
         targets = sequence_targets(context, num_trials)
+    elif isinstance(target_sequence_function, TargetSequenceReplay):
+        targets = target_sequence_function(context, num_trials, context_id)
     else:
         targets = target_sequence_function(context, num_trials)
 
@@ -254,6 +272,7 @@ def sample_game(
             listener,
             num_samples=num_samples,
             target_lengths=target_lengths,
+            context_id=context_id,
         )
         if preference_criterion is not None:
             preference_pairs = make_preference_pairs_copeland(
@@ -323,6 +342,10 @@ def run_sampling(config_path: str):
     listener_model_type = config.get("listener_model_type")
     if listener_model_type == "oracle":
         listener = OracleListener()
+    elif listener_model_type == "openai":
+        listener = OpenAIAPIListener(
+            **config.get("listener_config"),
+        )
     else:
         listener_model = AutoModelForImageTextToText.from_pretrained(
             **config.get("listener_model")
