@@ -1,5 +1,5 @@
 import itertools
-import random
+from random import Random
 from pathlib import Path
 
 
@@ -63,6 +63,9 @@ class ChatAgent:
         Returns:
             A tuple containing the prompt messages and a list of paths to all images appearing in the messages.
         """
+        # Create RNG object if random_seed is provided
+        rng = Random(random_seed) if random_seed is not None else Random()
+
         intro = self.get_intro(repeated_reference_game.context)
         if self.context_presentation == "no_history":
             trial_messages = [
@@ -103,9 +106,6 @@ class ChatAgent:
                 *itertools.chain.from_iterable(trial_messages),
             ]
         elif self.context_presentation == "last_shuffle":
-            if random_seed:
-                random.seed(random_seed)
-
             trial_messages = list()
             show_images = True
             for i, trial in enumerate(repeated_reference_game.trials[:-1]):
@@ -123,7 +123,7 @@ class ChatAgent:
                     continue
 
             last_trial = repeated_reference_game.trials[-1]
-            last_trial_context = random.sample(
+            last_trial_context = rng.sample(
                 repeated_reference_game.context, len(repeated_reference_game.context)
             )
             last_trial_messages = self.format_trial(
@@ -139,9 +139,6 @@ class ChatAgent:
                 *last_trial_messages,
             ]
         elif self.context_presentation == "last_no_shuffle":
-            if random_seed:
-                random.seed(random_seed)
-
             trial_messages = list()
             show_images = True
             for i, trial in enumerate(repeated_reference_game.trials[:-1]):
@@ -173,12 +170,9 @@ class ChatAgent:
                 *last_trial_messages,
             ]
         elif self.context_presentation == "trial_shuffle":
-            if random_seed:
-                random.seed(random_seed)
-
             trial_messages = []
             for i, trial in enumerate(repeated_reference_game.trials):
-                trial_context = random.sample(
+                trial_context = rng.sample(
                     repeated_reference_game.context,
                     len(repeated_reference_game.context),
                 )
@@ -200,8 +194,6 @@ class ChatAgent:
                 *itertools.chain.from_iterable(trial_messages),
             ]
         elif self.context_presentation == "block_shuffle":
-            if random_seed:
-                random.seed(random_seed)
             if not repeated_reference_game.validate_block_structure():
                 raise ValueError("Game does not have correct block structure.")
 
@@ -210,7 +202,7 @@ class ChatAgent:
             block_context = None
 
             if len(repeated_reference_game.trials) == 0:
-                block_context = random.sample(
+                block_context = rng.sample(
                     repeated_reference_game.context,
                     len(repeated_reference_game.context),
                 )
@@ -220,7 +212,7 @@ class ChatAgent:
                     repeated_reference_game.trials, len(repeated_reference_game.context)
                 )
             ):
-                block_context = random.sample(
+                block_context = rng.sample(
                     repeated_reference_game.context,
                     len(repeated_reference_game.context),
                 )

@@ -8,6 +8,7 @@ from transformers import AutoModel, AutoProcessor
 from tqdm import tqdm
 import itertools
 from PIL import Image
+from sklearn.cluster import KMeans
 
 
 class ImageSimilarityIndex:
@@ -49,13 +50,27 @@ class ImageSimilarityIndex:
     @staticmethod
     @find_executable_batch_size(starting_batch_size=1024)
     def _generate_image_embeddings_and_names(
-        batch_size, model_name_or_path, images_path, save_path=None, device=None
+        batch_size,
+        model_name_or_path,
+        images_path,
+        save_path=None,
+        device=None,
+        custom_weights_path=None,
     ) -> tuple[np.ndarray, list[str]] | None:
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        model = AutoModel.from_pretrained(model_name_or_path, device_map=device).eval()
-        processor = AutoProcessor.from_pretrained(model_name_or_path)
+        # Load model based on whether custom weights are provided
+        if custom_weights_path is not None:
+            print(f"Loading custom CLIP weights from {custom_weights_path}")
+            model, processor = ImageSimilarityIndex._load_custom_clip_model(
+                custom_weights_path, model_name_or_path, device
+            )
+        else:
+            model = AutoModel.from_pretrained(
+                model_name_or_path, device_map=device
+            ).eval()
+            processor = AutoProcessor.from_pretrained(model_name_or_path)
 
         image_names = list()
         embeddings_list = (
@@ -373,3 +388,106 @@ def sample_contexts(
 
     with open(save_path, "w") as f:
         json.dump(sampled_contexts, f)
+
+
+def split_kilogram(
+    index_path,
+    pretrain_index_path,
+    finetune_index_path,
+    val_index_path,
+    test_index_path,
+    n_clusters=10,
+    seed=412,
+):
+    from collections import Counter
+
+    index = ImageSimilarityIndex.from_file(index_path)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(
+        index.embeddings.numpy()
+    )
+
+    image2cluster = dict()
+    for idx in index.idx2image:
+        image2cluster[index.idx2image[idx]] = kmeans.labels_[idx]
+
+    # Count images per cluster to find largest and smallest
+    cluster_counts = Counter(image2cluster.values())
+    largest_cluster = max(cluster_counts, key=cluster_counts.get)
+    smallest_cluster = min(cluster_counts, key=cluster_counts.get)
+
+    training_clusters = sorted(
+        [c for c in cluster_counts if c != largest_cluster and c != smallest_cluster],
+        key=lambda c: cluster_counts[c],
+        reverse=False,
+    )
+
+    n_pretrain_clusters = (n_clusters - 2) // 2
+    pretrain_clusters = training_clusters[:n_pretrain_clusters]
+    finetune_clusters = training_clusters[n_pretrain_clusters:]
+
+    # Split images by cluster
+    pretrain_images = [
+        img for img, cluster in image2cluster.items() if cluster in pretrain_clusters
+    ]
+    finetune_images = [
+        img for img, cluster in image2cluster.items() if cluster in finetune_clusters
+    ]
+    val_images = [
+        img for img, cluster in image2cluster.items() if cluster == smallest_cluster
+    ]
+    test_images = [
+        img for img, cluster in image2cluster.items() if cluster == largest_cluster
+    ]
+
+    # Create pretrain index
+    pretrain_idx = [index.image2idx[img] for img in pretrain_images]
+    pretrain_embeddings = index.embeddings[pretrain_idx]
+    pretrain_index = ImageSimilarityIndex(
+        pretrain_embeddings,
+        {img: i for i, img in enumerate(pretrain_images)},
+        {i: img for i, img in enumerate(pretrain_images)},
+    )
+
+    # Create finetune index
+    finetune_idx = [index.image2idx[img] for img in finetune_images]
+    finetune_embeddings = index.embeddings[finetune_idx]
+    finetune_index = ImageSimilarityIndex(
+        finetune_embeddings,
+        {img: i for i, img in enumerate(finetune_images)},
+        {i: img for i, img in enumerate(finetune_images)},
+    )
+
+    # Create val index
+    val_idx = [index.image2idx[img] for img in val_images]
+    val_embeddings = index.embeddings[val_idx]
+    val_index = ImageSimilarityIndex(
+        val_embeddings,
+        {img: i for i, img in enumerate(val_images)},
+        {i: img for i, img in enumerate(val_images)},
+    )
+
+    # Create test index
+    test_idx = [index.image2idx[img] for img in test_images]
+    test_embeddings = index.embeddings[test_idx]
+    test_index = ImageSimilarityIndex(
+        test_embeddings,
+        {img: i for i, img in enumerate(test_images)},
+        {i: img for i, img in enumerate(test_images)},
+    )
+
+    # Save all indices to npz files
+    for index_obj, save_path in [
+        (pretrain_index, pretrain_index_path),
+        (finetune_index, finetune_index_path),
+        (val_index, val_index_path),
+        (test_index, test_index_path),
+    ]:
+        output_file_path = Path(save_path)
+        output_file_path.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            output_file_path,
+            embeddings=index_obj.embeddings.numpy(),
+            image_names=np.array(
+                [index_obj.idx2image[i] for i in range(len(index_obj.idx2image))]
+            ),
+        )

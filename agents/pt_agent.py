@@ -149,7 +149,9 @@ class BaseVLMAgent:
             ]
         elif self.context_presentation == "last_shuffle":
             if random_seed:
-                random.seed(random_seed)
+                rng = random.Random(random_seed)
+            else:
+                rng = random.Random()
 
             demonstration_messages = list()
             show_images = True
@@ -170,7 +172,7 @@ class BaseVLMAgent:
                         continue
 
                 last_demonstration_trial = self.demonstration_game.trials[-1]
-                last_demonstration_trial_context = random.sample(
+                last_demonstration_trial_context = rng.sample(
                     self.demonstration_game.context,
                     len(self.demonstration_game.context),
                 )
@@ -202,7 +204,7 @@ class BaseVLMAgent:
                     continue
 
             last_trial = repeated_reference_game.trials[-1]
-            last_trial_context = random.sample(
+            last_trial_context = rng.sample(
                 repeated_reference_game.context, len(repeated_reference_game.context)
             )
             last_trial_messages = self.format_trial(

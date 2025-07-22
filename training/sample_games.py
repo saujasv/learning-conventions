@@ -190,9 +190,3 @@ def sample_training_games(
 
     with jsonlines.open(save_path, "w") as writer:
         writer.write_all(map(lambda g: g.model_dump(mode="json"), games))
-
-
-if __name__ == "__main__":
-    import fire
-
-    fire.Fire(sample_training_games)

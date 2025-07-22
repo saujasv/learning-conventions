@@ -3,7 +3,7 @@ import json
 from trl import SFTTrainer, get_peft_config
 from accelerate import Accelerator
 from transformers import (
-    AutoModelForVision2Seq,
+    AutoModelForImageTextToText,
     AutoProcessor,
     Idefics3Processor,
     PixtralProcessor,
@@ -20,20 +20,6 @@ from agents import GenerateSpeaker, ScoringListener
 from agents.hf_speakers import BaseVLMGenerateSpeaker
 from agents.hf_listeners import BaseVLMScoringListener
 from pathlib import Path
-
-
-def prepare_game(x, agent):
-    game = RepeatedReferenceGame.model_validate(x)
-    game_messages, message_image_paths = agent.construct_prompt_messages(game)[0]
-    message_texts = agent.processor.apply_chat_template(
-        game_messages, chat_template=agent.chat_template
-    )
-    message_images = [Image.open(path) for path in message_image_paths]
-    processed = agent.processor(
-        text=message_texts, images=message_images, return_tensors="pt"
-    )
-
-    return processed
 
 
 def train(
@@ -75,18 +61,11 @@ def train(
         torch_dtype=torch_dtype,
     )
 
-    if isinstance(processor, Gemma3Processor):
-        model = Gemma3ForConditionalGeneration.from_pretrained(
-            model_config.model_name_or_path,
-            trust_remote_code=model_config.trust_remote_code,
-            **model_kwargs,
-        )
-    else:
-        model = AutoModelForVision2Seq.from_pretrained(
-            model_config.model_name_or_path,
-            trust_remote_code=model_config.trust_remote_code,
-            **model_kwargs,
-        )
+    model = AutoModelForImageTextToText.from_pretrained(
+        model_config.model_name_or_path,
+        trust_remote_code=model_config.trust_remote_code,
+        **model_kwargs,
+    )
 
     print(model.config)
 

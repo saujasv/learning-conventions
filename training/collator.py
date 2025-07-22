@@ -216,45 +216,6 @@ class RepeatedReferenceGameCollator(DataCollatorForLanguageModeling):
         )
         collated_batch = self.torch_call(processed)
 
+        del images
+
         return collated_batch
-
-    # def __call__(self, examples):
-    #     image_sizes_field = get_image_sizes_field(self.agent.processor)
-    #     collator_input = [
-    #         {
-    #             k: v[0]
-    #             for k, v in x.items()
-    #             if not k in ["pixel_values", image_sizes_field]
-    #         }
-    #         for x in examples
-    #     ]
-
-    #     padded = self.agent.processor.tokenizer.pad(collator_input, return_tensors="pt")
-
-    #     batch = self.torch_call(padded)
-
-    #     image_sizes = list(
-    #         itertools.chain.from_iterable([x[image_sizes_field] for x in examples])
-    #     )
-
-    #     return BatchFeature(
-    #         data={
-    #             **batch,
-    #             "pixel_values": torch.tensor(
-    #                 list(
-    #                     itertools.chain.from_iterable(
-    #                         [x["pixel_values"] for x in examples]
-    #                     )
-    #                 ),
-    #                 dtype=torch.float32,
-    #             ),
-    #             image_sizes_field: (
-    #                 torch.tensor(
-    #                     image_sizes,
-    #                     dtype=torch.int64,
-    #                 )
-    #                 if image_sizes_field == "image_grid_thw"
-    #                 else image_sizes
-    #             ),
-    #         }
-    #     )
