@@ -8,8 +8,7 @@ from transformers import PreTrainedModel, ProcessorMixin
 import re
 from copy import deepcopy
 import os
-from .chat_speaker import ChatSpeaker
-from .pt_agent import BaseVLMSpeaker
+from .base_agent import BaseSpeaker
 from .prompts import (
     SPEAKER_SYSTEM_PROMPT_STANDARD,
     SPEAKER_USER_PROMPT_PHOTOGRAPHS,
@@ -19,28 +18,34 @@ from .utils import ContrastiveDecodingProcessor
 from game import RepeatedReferenceGame
 
 
-class GenerateSpeaker(ChatSpeaker):
+class GenerateSpeaker(BaseSpeaker):
     def __init__(
         self,
-        model,
-        processor,
-        generation_config=None,
-        context_presentation="once",
-        feedback_label=False,
-        system_prompt_template=SPEAKER_SYSTEM_PROMPT_STANDARD,
-        user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS,
+        agent_type: Literal["base", "chat"],
+        model: PreTrainedModel,
+        processor: ProcessorMixin,
+        generation_config: Optional[dict[str, Any]] = None,
+        context_presentation: Literal[
+            "once", "last_shuffle", "last_no_shuffle"
+        ] = "once",
+        feedback_label: bool = False,
+        max_image_size: Optional[int] = None,
+        chat_template_file: Optional[str] = None,
+        demonstration_game: Optional[Union[RepeatedReferenceGame, str]] = None,
+        contrastive_decoding: bool = False,
+        system_prompt_template: str = SPEAKER_SYSTEM_PROMPT_STANDARD,
+        user_prompt: str = SPEAKER_USER_PROMPT_PHOTOGRAPHS,
         target_prompt_template=SPEAKER_USER_PROMPT_TARGET,
-        max_image_size=None,
-        chat_template_file=None,
-        contrastive_decoding=False,
     ):
-        ChatSpeaker.__init__(
+        BaseSpeaker.__init__(
             self,
+            agent_type=agent_type,
             context_presentation=context_presentation,
             feedback_label=feedback_label,
             system_prompt_template=system_prompt_template,
             user_prompt=user_prompt,
             target_prompt_template=target_prompt_template,
+            demonstration_game=demonstration_game,
         )
 
         self.model = model
@@ -56,7 +61,7 @@ class GenerateSpeaker(ChatSpeaker):
         self.contrastive_decoding = contrastive_decoding
         self.generation_config = {
             "max_new_tokens": 64,
-            "temperature": 0.3,
+            "temperature": 1.0,
             "do_sample": True,
             "top_p": 0.9,
             "stop_strings": ["\n"],
@@ -64,8 +69,6 @@ class GenerateSpeaker(ChatSpeaker):
 
         if generation_config is not None:
             self.generation_config.update(generation_config)
-
-        self.text_only_assistant = False
 
     @find_executable_batch_size(starting_batch_size=64)
     def batch_generate(
@@ -215,7 +218,6 @@ class GenerateSpeaker(ChatSpeaker):
             add_generation_prompt=True,
             chat_template=self.chat_template,
         )
-
         batch_image_objects = [
             [Image.open(img).convert("RGB") for img in imgs]
             for imgs in itertools.chain.from_iterable(batch_images)
@@ -371,56 +373,6 @@ class GenerateSpeaker(ChatSpeaker):
         )
 
         return (-1 * loss.view(shift_labels.shape).sum(dim=-1)).tolist()
-
-    def encode_image(self, image_path):
-        return str(Path(self.image_base_path) / image_path)
-
-
-class BaseVLMGenerateSpeaker(BaseVLMSpeaker, GenerateSpeaker):
-    def __init__(
-        self,
-        model: PreTrainedModel,
-        processor: ProcessorMixin,
-        generation_config: dict[str, Any] = None,
-        context_presentation: Literal[
-            "once", "last_shuffle", "last_no_shuffle"
-        ] = "once",
-        feedback_label: bool = False,
-        max_image_size: Optional[int] = None,
-        chat_template_file: Optional[str] = None,
-        contrastive_decoding: bool = False,
-        demonstration_game: Optional[Union[RepeatedReferenceGame, str]] = None,
-    ):
-        BaseVLMSpeaker.__init__(
-            self,
-            context_presentation=context_presentation,
-            feedback_label=feedback_label,
-            demonstration_game=demonstration_game,
-        )
-
-        self.model = model
-        self.processor = processor
-        if chat_template_file:
-            with open(chat_template_file, "r") as f:
-                self.chat_template = f.read()
-        else:
-            self.chat_template = None
-
-        self.image_base_path = os.getenv("IMAGE_BASE_PATH", "")
-        self.max_image_size = max_image_size
-        self.contrastive_decoding = contrastive_decoding
-        self.generation_config = {
-            "max_new_tokens": 64,
-            "temperature": 1.0,
-            "do_sample": True,
-            "top_p": 0.9,
-            "stop_strings": ["\n"],
-        }
-
-        if generation_config is not None:
-            self.generation_config.update(generation_config)
-
-        self.text_only_assistant = False
 
     def encode_image(self, image_path):
         return str(Path(self.image_base_path) / image_path)
