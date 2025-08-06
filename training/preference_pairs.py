@@ -4,12 +4,12 @@ from copy import deepcopy
 import numpy as np
 import itertools
 from game import RepeatedReferenceGame, Trial
-from agents.chat_speaker import ChatSpeaker
-from agents.chat_listener import ChatListener
-from agents.hf_speakers import GenerateSpeaker, BaseVLMGenerateSpeaker
+from agents.base_agent import BaseSpeaker, BaseListener
+from agents.hf_speakers import GenerateSpeaker
 from agents.static_agents import ReplaySpeaker, OracleListener
 from agents.hf_listeners import ScoringListener
 from agents.openai_api_agent import OpenAIAPIListener
+from agents.cogen_agents import CoGenAgent
 from agents.prompts import (
     SPEAKER_SYSTEM_PROMPT_BASIC,
     SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
@@ -161,8 +161,8 @@ SELECT_NEXT_TRIAL_FUNCTIONS = {
 def sample_trial(
     game: RepeatedReferenceGame,
     target: str,
-    speaker: ChatSpeaker,
-    listener: ChatListener,
+    speaker: BaseSpeaker,
+    listener: BaseListener,
     num_samples: Optional[int] = None,
     target_lengths: Optional[List[int]] = None,
     context_id: Optional[str] = None,
@@ -173,8 +173,8 @@ def sample_trial(
     Args:
         game (RepeatedReferenceGame): The game instance.
         target (str): The target item for the trial.
-        speaker (ChatSpeaker): The speaker agent.
-        listener (ChatListener): The listener agent.
+        speaker (BaseSpeaker): The speaker agent.
+        listener (BaseListener): The listener agent.
         num_samples (int): Number of trials to sample.
         preference_criterion (callable): Function to determine preference between trials.
     Returns:
@@ -313,6 +313,10 @@ def run_sampling(config_path: str):
 
     if config.get("speaker_model_type") == "replay":
         speaker = ReplaySpeaker(config.get("speaker_config")["replay_data_path"])
+    elif config.get("speaker_model_type") == "cogen":
+        speaker = CoGenAgent(
+            **config.get("speaker_config"),
+        )
     else:
         speaker_model = AutoModelForImageTextToText.from_pretrained(
             **config.get("speaker_model")
@@ -321,29 +325,25 @@ def run_sampling(config_path: str):
             **config.get("speaker_processor")
         )
         speaker_model_type = config.get("speaker_model_type")
-        if speaker_model_type == "chat":
-            speaker = GenerateSpeaker(
-                speaker_model,
-                speaker_processor,
-                system_prompt_template=SPEAKER_SYSTEM_PROMPT_BASIC,
-                user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
-                target_prompt_template=SPEAKER_USER_PROMPT_TARGET_BASIC,
-                **config.get("speaker_config"),
-            )
-        elif speaker_model_type == "base":
-            speaker = BaseVLMGenerateSpeaker(
-                speaker_model,
-                speaker_processor,
-                **config.get("speaker_config"),
-            )
-        else:
-            raise ValueError(f"Unknown model type: {speaker_model_type}")
+        speaker = GenerateSpeaker(
+            speaker_model_type,
+            speaker_model,
+            speaker_processor,
+            system_prompt_template=SPEAKER_SYSTEM_PROMPT_BASIC,
+            user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
+            target_prompt_template=SPEAKER_USER_PROMPT_TARGET_BASIC,
+            **config.get("speaker_config"),
+        )
 
     listener_model_type = config.get("listener_model_type")
     if listener_model_type == "oracle":
         listener = OracleListener()
     elif listener_model_type == "openai":
         listener = OpenAIAPIListener(
+            **config.get("listener_config"),
+        )
+    elif listener_model_type == "cogen":
+        listener = CoGenAgent(
             **config.get("listener_config"),
         )
     else:
@@ -354,6 +354,7 @@ def run_sampling(config_path: str):
             **config.get("listener_processor")
         )
         listener = ScoringListener(
+            listener_model_type,
             listener_model,
             listener_processor,
             **config.get("listener_config"),

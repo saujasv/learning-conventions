@@ -46,6 +46,9 @@ from transformers import (
     Trainer,
     is_comet_available,
     is_wandb_available,
+    Gemma3Processor,
+    PixtralProcessor,
+    Qwen2VLProcessor,
 )
 from transformers.data.data_collator import DataCollatorMixin
 from transformers.models.auto.modeling_auto import (
@@ -192,7 +195,10 @@ class DataCollatorForPreference:
             rejected_attention_mask, padding_value=0
         )
         if "pixel_values" in examples[0]:
-            output["pixel_values"] = pad(pixel_values, padding_value=0.0)
+            if isinstance(self.processor, Gemma3Processor):
+                output["pixel_values"] = pad(pixel_values, padding_value=0.0)
+            else:
+                output["pixel_values"] = pixel_values
         if "pixel_attention_mask" in examples[0]:
             output["pixel_attention_mask"] = pad(pixel_attention_mask, padding_value=0)
         if "image_sizes" in examples[0]:
@@ -941,6 +947,10 @@ class DPOTrainer(Trainer):
         """
 
         if self.precompute_ref_log_probs and not self._precomputed_train_ref_log_probs:
+            # Ensure the main model is prepared if we need to use it
+            if self.ref_model is None and not hasattr(self.model, "_hf_prepared"):
+                self.model = self.accelerator.prepare_model(self.model)
+
             batch_size = (
                 self.args.precompute_ref_batch_size
                 or self.args.per_device_train_batch_size
@@ -1429,15 +1439,18 @@ class DPOTrainer(Trainer):
         prompt_attention_mask = concatenated_batch["prompt_attention_mask"]
         completion_input_ids = concatenated_batch["completion_input_ids"]
         completion_attention_mask = concatenated_batch["completion_attention_mask"]
+
         if self.is_encoder_decoder:
             labels = completion_input_ids
             labels[completion_attention_mask == 0] = self.label_pad_token_id
+
             outputs = model(
                 input_ids=prompt_input_ids,
                 attention_mask=prompt_attention_mask,
                 labels=labels,  # we need the labels for the logits to be returned
                 **model_kwargs,
             )
+
             logits = outputs.logits
             loss_mask = completion_attention_mask.bool()
         else:
@@ -1500,6 +1513,7 @@ class DPOTrainer(Trainer):
                 model_kwargs["attention_mask"] = attention_mask
 
             outputs = model(input_ids, **model_kwargs)
+
             logits = outputs.logits
 
             # Offset the logits by one to align with the labels
@@ -1612,11 +1626,11 @@ class DPOTrainer(Trainer):
         train_eval: Literal["train", "eval"] = "train",
     ):
         """Compute the DPO loss and other metrics for the given batch of inputs for train or test."""
+
         metrics = {}
 
         model_output = self.concatenated_forward(model, batch)
 
-        # if ref_chosen_logps and ref_rejected_logps in batch use them, otherwise use the reference model
         if "ref_chosen_logps" in batch and "ref_rejected_logps" in batch:
             ref_chosen_logps = batch["ref_chosen_logps"]
             ref_rejected_logps = batch["ref_rejected_logps"]
@@ -1629,6 +1643,7 @@ class DPOTrainer(Trainer):
             ref_chosen_logps,
             ref_rejected_logps,
         )
+
         reward_accuracies = (chosen_rewards > rejected_rewards).float()
 
         if self.args.rpo_alpha is not None:
@@ -1705,6 +1720,7 @@ class DPOTrainer(Trainer):
         return_outputs=False,
         num_items_in_batch=None,
     ) -> Union[torch.Tensor, tuple[torch.Tensor, dict[str, torch.Tensor]]]:
+
         device_type = "xpu" if is_torch_xpu_available() else "cuda"
         compute_loss_context_manager = (
             amp.autocast(device_type)

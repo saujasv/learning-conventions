@@ -1,5 +1,11 @@
 import torch
-from trl import get_peft_config
+from trl import (
+    get_peft_config,
+    ModelConfig,
+    ScriptArguments,
+    DPOConfig,
+    TrlParser,
+)
 from transformers import (
     AutoModelForImageTextToText,
     AutoProcessor,
@@ -10,9 +16,10 @@ import pandas as pd
 from game import RepeatedReferenceGame, Trial
 from training.dpo_trainer import DPOTrainer
 from training.model_constants import get_lora_target_modules
-from agents.hf_speakers import GenerateSpeaker, BaseVLMGenerateSpeaker
+from agents.hf_speakers import GenerateSpeaker
+from agents.args import AgentArguments
 from pathlib import Path
-from datasets import Dataset, Sequence, Image
+from datasets import Dataset
 
 
 def make_game_preference_pair(x, speaker):
@@ -44,12 +51,11 @@ def make_game_preference_pair(x, speaker):
     }
 
 
-def train(
-    script_args,
-    training_args,
-    model_config,
-    **kwargs,
-):
+def train():
+    parser = TrlParser((ScriptArguments, DPOConfig, ModelConfig, AgentArguments))
+    script_args, training_args, model_config, agent_args, _ = (
+        parser.parse_args_and_config(return_remaining_strings=True)
+    )
     training_args.gradient_checkpointing_kwargs = dict(use_reentrant=True)
     training_args.remove_unused_columns = False
     training_args.dataset_kwargs = {"skip_prepare_dataset": True}
@@ -77,9 +83,8 @@ def train(
     else:
         attn_implementation = "flash_attention_2"
 
-    chat_template = kwargs.get("--chat_template_file", None)
-    if chat_template is not None:
-        with open(chat_template, "r") as f:
+    if agent_args.chat_template_file is not None:
+        with open(agent_args.chat_template_file, "r") as f:
             processor.chat_template = f.read().strip()
             processor.tokenizer.chat_template = processor.chat_template
 
@@ -102,23 +107,16 @@ def train(
     ################
     # Dataset
     ################
-    if kwargs.get("--model_type", "chat") == "chat":
-        agent = GenerateSpeaker(
-            None,
-            processor,
-            context_presentation=kwargs.get("--context_presentation", "once"),
-            feedback_label=bool(kwargs.get("--feedback_label", "false")),
-            chat_template_file=kwargs.get("--chat_template_file", None),
-        )
-    else:
-        agent = BaseVLMGenerateSpeaker(
-            None,
-            processor,
-            context_presentation=kwargs.get("--context_presentation", "once"),
-            feedback_label=bool(kwargs.get("--feedback_label", "true")),
-            chat_template_file=kwargs.get("--chat_template_file", None),
-            demonstration_game=kwargs.get("--demonstration_game", None),
-        )
+    agent = GenerateSpeaker(
+        model_type=agent_args.model_type,
+        model=None,
+        processor=processor,
+        context_presentation=agent_args.context_presentation,
+        feedback_label=agent_args.feedback_label,
+        chat_template_file=agent_args.chat_template_file,
+        demonstration_game=agent_args.demonstration_game,
+        max_image_size=agent_args.max_image_size,
+    )
 
     train_df = pd.read_json(
         Path(script_args.dataset_name) / "train.jsonl", lines=True, orient="records"
@@ -164,11 +162,7 @@ def train(
         peft_config=get_peft_config(model_config),
     )
 
-    if kwargs.get("--from_ckpt", False):
-        print("Resuming from checkpoint")
-        trainer.train(resume_from_checkpoint=True)
-    else:
-        trainer.train()
+    trainer.train(resume_from_checkpoint=training_args.resume_from_checkpoint)
 
     # Save and push to hub
     trainer.save_model(training_args.output_dir)

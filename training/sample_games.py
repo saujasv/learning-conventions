@@ -14,6 +14,30 @@ def sample_context(pool, num_items, sampling_algorithm="uniform", **kwargs):
         raise ValueError(f"Unknown sampling algorithm: {sampling_algorithm}")
 
 
+def extract_cogen_annotations(save_path, *cogen_data_paths):
+    games = list()
+    for cogen_data_path in cogen_data_paths:
+        with open(cogen_data_path, "r") as f:
+            data = json.load(f)
+            for k, v in data.items():
+                games.extend(v)
+
+    annotations = dict()
+
+    for g in games:
+        if g["selection"] != g["gt_target"]:
+            continue
+
+        if g["gt_target"] not in annotations:
+            annotations[g["gt_target"]] = {"annotations": list()}
+        annotations[g["gt_target"]]["annotations"].append(
+            {"whole": {"wholeAnnotation": g["chat"]}}
+        )
+
+    with open(save_path, "w") as f:
+        json.dump({f"{k}.jpg": v for k, v in annotations.items()}, f)
+
+
 def sample_kilogram_description(annotations, min_parts=0, max_parts=0):
     sampled_annotation = random.choice(annotations)
     last_word = sampled_annotation["whole"]["wholeAnnotation"].strip().split(" ")[-1]

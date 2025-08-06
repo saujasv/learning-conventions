@@ -4,8 +4,8 @@ from transformers import (
     Qwen2_5_VLProcessor,
     Gemma3Processor,
 )
-from agents.hf_speakers import BaseVLMGenerateSpeaker
-from agents.hf_listeners import BaseVLMScoringListener
+from agents.hf_speakers import GenerateSpeaker
+from agents.hf_listeners import ScoringListener
 
 
 def get_lora_target_modules(model_config, lora_targets):
@@ -34,18 +34,20 @@ def get_lora_target_modules(model_config, lora_targets):
 def get_chat_template_features(agent):
     processor = agent.processor
 
-    if isinstance(agent, BaseVLMScoringListener):
-        return "Image:\n", "<eos>"
-    elif isinstance(agent, BaseVLMGenerateSpeaker):
-        return " description:\n", "\nFeedback"
-    elif isinstance(processor, PixtralProcessor):
-        return "[/INST]", "[INST]"
-    elif isinstance(processor, Idefics3Processor):
-        return "Assistant:", "User:"
-    elif isinstance(processor, Qwen2_5_VLProcessor):
-        return "<|im_start|>assistant", "<|im_start|>user"
+    if isinstance(processor, PixtralProcessor):
+        if agent.model_type == "chat":
+            return "[/INST]", "[INST]"
+        else:
+            raise ValueError(f"Unsupported agent type for Pixtral: {agent.model_type}")
     elif isinstance(processor, Gemma3Processor):
-        return "<start_of_turn>model\n", "<start_of_turn>user\n"
+        if agent.model_type == "chat":
+            return "<start_of_turn>model\n", "<start_of_turn>user\n"
+        elif agent.model_type == "base" and isinstance(agent, GenerateSpeaker):
+            return " description:\n", "\nFeedback"
+        elif agent.model_type == "base" and isinstance(agent, ScoringListener):
+            return "Image:\n", "<eos>"
+        else:
+            raise ValueError(f"Unsupported agent type for Gemma 3: {agent.model_type}")
     else:
         raise ValueError(f"Unsupported processor type: {type(processor)}")
 
