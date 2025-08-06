@@ -8,7 +8,7 @@ from game import RepeatedReferenceGame, Trial
 class BaseAgent:
     def __init__(
         self,
-        agent_type: Literal["base", "chat"] = "base",
+        model_type: Literal["base", "chat"] = "base",
         context_presentation: Literal[
             "once",
             "no_history",
@@ -24,14 +24,14 @@ class BaseAgent:
         Unified base agent that combines functionality from BaseVLMAgent and ChatAgent.
 
         Args:
-            agent_type: Whether this is a "base" VLM agent or "chat" agent mode
+            model_type: Whether this is a "base" VLM agent or "chat" agent mode
             context_presentation: How to present images and prior trials in context
             feedback_label: Whether to include the true label in feedback messages
             demonstration_game: Optional demonstration game for base mode
         """
         # Validate agent type
-        assert agent_type in ["base", "chat"], f"Invalid agent_type: {agent_type}"
-        self.agent_type = agent_type
+        assert model_type in ["base", "chat"], f"Invalid model_type: {model_type}"
+        self.model_type = model_type
 
         # presentation of images and prior trials of the game in the context
         assert context_presentation in [
@@ -65,7 +65,7 @@ class BaseAgent:
         Get introduction messages. Only used in chat mode.
         In base mode, returns empty list.
         """
-        if self.agent_type == "chat":
+        if self.model_type == "chat":
             raise NotImplementedError(
                 "The introduction prompt is specific to the agent type (speaker/listener). "
                 "Subclasses must implement this method."
@@ -113,14 +113,14 @@ class BaseAgent:
             rng = random.Random()
 
         # Get intro messages (empty for base mode, implemented by subclasses for chat mode)
-        if self.agent_type == "chat":
+        if self.model_type == "chat":
             intro = self.get_intro(repeated_reference_game.context)
         else:
             intro = []
 
         if self.context_presentation == "no_history":
             # Handle demonstration game (base mode only)
-            if self.agent_type == "base" and self.demonstration_game:
+            if self.model_type == "base" and self.demonstration_game:
                 demonstration_messages = [
                     self.format_trial(
                         self.demonstration_game.trials[-1],
@@ -153,7 +153,7 @@ class BaseAgent:
             # Handle demonstration game (base mode only)
             demonstration_messages = list()
             show_images = True
-            if self.agent_type == "base" and self.demonstration_game:
+            if self.model_type == "base" and self.demonstration_game:
                 for i, trial in enumerate(self.demonstration_game.trials):
                     messages = self.format_trial(
                         trial,
@@ -202,7 +202,7 @@ class BaseAgent:
             # Handle demonstration game (base mode only)
             demonstration_messages = list()
             show_images = True
-            if self.agent_type == "base" and self.demonstration_game:
+            if self.model_type == "base" and self.demonstration_game:
                 for i, trial in enumerate(self.demonstration_game.trials[:-1]):
                     messages = self.format_trial(
                         trial,
@@ -273,7 +273,7 @@ class BaseAgent:
             # Handle demonstration game (base mode only)
             demonstration_messages = list()
             show_images = True
-            if self.agent_type == "base" and self.demonstration_game:
+            if self.model_type == "base" and self.demonstration_game:
                 for i, trial in enumerate(self.demonstration_game.trials[:-1]):
                     messages = self.format_trial(
                         trial,
@@ -477,7 +477,7 @@ class BaseListener(BaseAgent):
 
     def get_intro(self, context: Tuple[str]):
         """Get introduction messages for chat mode."""
-        if self.agent_type == "chat":
+        if self.model_type == "chat":
             return [
                 {
                     "role": "system",
@@ -544,7 +544,7 @@ class BaseListener(BaseAgent):
             images_prompt = []
 
         # Different message prompts for chat vs base mode
-        if self.agent_type == "chat":
+        if self.model_type == "chat":
             message_prompt = [
                 {
                     "type": "text",
@@ -576,7 +576,7 @@ class BaseListener(BaseAgent):
             if not exclude_feedback:
                 if trial.get_correct() is None:
                     # Invalid answer feedback - different for chat vs base mode
-                    if self.agent_type == "chat":
+                    if self.model_type == "chat":
                         feedback_text = f"Invalid answer. Answer must be one of {','.join([self.get_label(context, item) for i, item in enumerate(context)])}."
                     else:
                         feedback_text = "Feedback: Invalid answer."
@@ -594,7 +594,7 @@ class BaseListener(BaseAgent):
                     ]
                 elif trial.get_correct():
                     # Correct answer feedback
-                    if self.agent_type == "chat":
+                    if self.model_type == "chat":
                         feedback_text = "Correct."
                     else:
                         feedback_text = f"Feedback: Correct answer {self.get_label(context, trial.get_selection(), is_demonstration)}."
@@ -607,7 +607,7 @@ class BaseListener(BaseAgent):
                     ]
                 else:
                     # Wrong answer feedback
-                    if self.agent_type == "chat":
+                    if self.model_type == "chat":
                         feedback_text = (
                             f"Wrong, I'm referring to image {self.get_label(context, trial.get_target(), is_demonstration)}."
                             if self.feedback_label
@@ -685,20 +685,27 @@ class BaseSpeaker(BaseAgent):
         super().__init__(*args, **kwargs)
 
         # Import default prompts for chat mode
-        if self.agent_type == "chat" and system_prompt_template is None:
-            from .prompts import (
-                SPEAKER_SYSTEM_PROMPT_STANDARD,
-                SPEAKER_USER_PROMPT_PHOTOGRAPHS,
-                SPEAKER_USER_PROMPT_TARGET,
-            )
+        if self.model_type == "chat":
+            if system_prompt_template is None:
+                from .prompts import SPEAKER_SYSTEM_PROMPT_BASIC
 
-            self.system_prompt_template = SPEAKER_SYSTEM_PROMPT_STANDARD
-            self.user_prompt = SPEAKER_USER_PROMPT_PHOTOGRAPHS
-            self.target_prompt_template = SPEAKER_USER_PROMPT_TARGET
-        else:
-            self.system_prompt_template = system_prompt_template
-            self.user_prompt = user_prompt
-            self.target_prompt_template = target_prompt_template
+                self.system_prompt_template = SPEAKER_SYSTEM_PROMPT_BASIC
+            else:
+                self.system_prompt_template = system_prompt_template
+
+            if user_prompt is None:
+                from .prompts import SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC
+
+                self.user_prompt = SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC
+            else:
+                self.user_prompt = user_prompt
+
+            if target_prompt_template is None:
+                from .prompts import SPEAKER_USER_PROMPT_TARGET_BASIC
+
+                self.target_prompt_template = SPEAKER_USER_PROMPT_TARGET_BASIC
+            else:
+                self.target_prompt_template = target_prompt_template
 
     def get_label(
         self, context: Tuple[str], item: Optional[str], is_demonstration: bool = False
@@ -715,7 +722,7 @@ class BaseSpeaker(BaseAgent):
 
     def get_intro(self, context: Tuple[str]):
         """Get introduction messages for chat mode."""
-        if self.agent_type == "chat":
+        if self.model_type == "chat":
             prompt = self.system_prompt_template.substitute(
                 num_images=len(context),
                 labels=", ".join([chr(ord("A") + i) for i in range(len(context))]),
@@ -781,7 +788,7 @@ class BaseSpeaker(BaseAgent):
             images_prompt = []
 
         # Different target prompts for chat vs base mode
-        if self.agent_type == "chat":
+        if self.model_type == "chat":
             target_prompt = [
                 {
                     "type": "text",
@@ -823,7 +830,7 @@ class BaseSpeaker(BaseAgent):
             if not exclude_feedback:
                 if trial.get_selection() is None:
                     # Invalid answer feedback - different for chat vs base mode
-                    if self.agent_type == "chat":
+                    if self.model_type == "chat":
                         feedback_text = "The listener didn't give a valid answer."
                     else:
                         feedback_text = "Feedback: Invalid answer."
@@ -841,7 +848,7 @@ class BaseSpeaker(BaseAgent):
                     ]
                 elif trial.get_correct():
                     # Correct answer feedback
-                    if self.agent_type == "chat":
+                    if self.model_type == "chat":
                         feedback_text = f"The listener correctly answered Image {self.get_label(context, trial.get_selection(), is_demonstration)}."
                     else:
                         feedback_text = f"Feedback: Correct answer {self.get_label(context, trial.get_selection(), is_demonstration)}."
@@ -859,7 +866,7 @@ class BaseSpeaker(BaseAgent):
                     ]
                 else:
                     # Wrong answer feedback
-                    if self.agent_type == "chat":
+                    if self.model_type == "chat":
                         feedback_text = (
                             f"The listener mistakenly answered Image {self.get_label(context, trial.get_selection(), is_demonstration)}."
                             if self.feedback_label

@@ -15,7 +15,7 @@ from typing import Any, Literal, Optional, Union
 class ScoringListener(BaseListener):
     def __init__(
         self,
-        agent_type: Literal["base", "chat"],
+        model_type: Literal["base", "chat"],
         model: PreTrainedModel,
         processor: ProcessorMixin,
         context_presentation: Literal[
@@ -29,7 +29,7 @@ class ScoringListener(BaseListener):
     ):
         BaseListener.__init__(
             self,
-            agent_type=agent_type,
+            model_type=model_type,
             context_presentation=context_presentation,
             feedback_label=feedback_label,
             demonstration_game=demonstration_game,

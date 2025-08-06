@@ -4,8 +4,7 @@ import base64
 import os
 from PIL import Image
 
-from .chat_speaker import ChatSpeaker
-from .chat_listener import ChatListener
+from .base_agent import BaseSpeaker, BaseListener
 from .prompts import (
     SPEAKER_SYSTEM_PROMPT_STANDARD,
     SPEAKER_USER_PROMPT_PHOTOGRAPHS,
@@ -39,7 +38,7 @@ class OpenAIAPIAgent:
             return f"data:image/{self.image_format};base64,{base64.b64encode(image_file.read()).decode("utf-8")}"
 
 
-class OpenAIAPISpeaker(OpenAIAPIAgent, ChatSpeaker):
+class OpenAIAPISpeaker(OpenAIAPIAgent, BaseSpeaker):
     def __init__(
         self,
         model,
@@ -97,7 +96,7 @@ class OpenAIAPISpeaker(OpenAIAPIAgent, ChatSpeaker):
         )
 
 
-class OpenAIAPIListener(OpenAIAPIAgent, ChatListener):
+class OpenAIAPIListener(OpenAIAPIAgent, BaseListener):
     def __init__(
         self,
         model,

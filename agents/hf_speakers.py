@@ -21,7 +21,7 @@ from game import RepeatedReferenceGame
 class GenerateSpeaker(BaseSpeaker):
     def __init__(
         self,
-        agent_type: Literal["base", "chat"],
+        model_type: Literal["base", "chat"],
         model: PreTrainedModel,
         processor: ProcessorMixin,
         generation_config: Optional[dict[str, Any]] = None,
@@ -33,13 +33,13 @@ class GenerateSpeaker(BaseSpeaker):
         chat_template_file: Optional[str] = None,
         demonstration_game: Optional[Union[RepeatedReferenceGame, str]] = None,
         contrastive_decoding: bool = False,
-        system_prompt_template: str = SPEAKER_SYSTEM_PROMPT_STANDARD,
-        user_prompt: str = SPEAKER_USER_PROMPT_PHOTOGRAPHS,
-        target_prompt_template=SPEAKER_USER_PROMPT_TARGET,
+        system_prompt_template: Optional[str] = None,
+        user_prompt: Optional[str] = None,
+        target_prompt_template: Optional[str] = None,
     ):
         BaseSpeaker.__init__(
             self,
-            agent_type=agent_type,
+            model_type=model_type,
             context_presentation=context_presentation,
             feedback_label=feedback_label,
             system_prompt_template=system_prompt_template,

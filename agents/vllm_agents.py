@@ -5,8 +5,7 @@ from PIL import Image
 from vllm import LLM, SamplingParams
 from vllm.entrypoints.chat_utils import apply_hf_chat_template, parse_chat_messages
 from vllm.inputs import TokensPrompt
-from .chat_listener import ChatListener
-from .chat_speaker import ChatSpeaker
+from .base_agent import BaseListener, BaseSpeaker
 from .utils import CHAT_TEMPLATE, QWEN_CHAT_TEMPLATE
 from pathlib import Path
 from game import RepeatedReferenceGame, Trial
@@ -42,7 +41,7 @@ class vLLMAgent:
             return f"data:image/{image_format};base64,{base64.b64encode(image_file.read()).decode("utf-8")}"
 
 
-class vLLMSpeaker(vLLMAgent, ChatSpeaker):
+class vLLMSpeaker(vLLMAgent, BaseSpeaker):
     def __init__(
         self,
         model,
@@ -88,7 +87,7 @@ class vLLMSpeaker(vLLMAgent, ChatSpeaker):
         return [x.text.strip().strip('"') for x in outputs[0].outputs]
 
 
-class vLLMListener(vLLMAgent, ChatListener):
+class vLLMListener(vLLMAgent, BaseListener):
     def __init__(
         self,
         model,
