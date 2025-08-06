@@ -5,7 +5,6 @@ from .gpt_agents import GPTListener, GPTSpeaker
 from .vllm_agents import vLLMListener, vLLMSpeaker
 
 __all__ = [
-    "CoGenListener",
     "ScoringListener",
     "GenerateListener",
     "GenerateSpeaker",

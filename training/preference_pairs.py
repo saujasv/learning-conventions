@@ -9,7 +9,6 @@ from agents.hf_speakers import GenerateSpeaker
 from agents.static_agents import ReplaySpeaker, OracleListener
 from agents.hf_listeners import ScoringListener
 from agents.openai_api_agent import OpenAIAPIListener
-from agents.cogen_agents import CoGenAgent
 from agents.prompts import (
     SPEAKER_SYSTEM_PROMPT_BASIC,
     SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
@@ -343,6 +342,8 @@ def run_sampling(config_path: str):
             **config.get("listener_config"),
         )
     elif listener_model_type == "cogen":
+        from agents.cogen_agents import CoGenAgent
+
         listener = CoGenAgent(
             **config.get("listener_config"),
         )
