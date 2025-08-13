@@ -13,7 +13,7 @@ from transformers import (
     PixtralProcessor,
 )
 import pandas as pd
-from game import RepeatedReferenceGame, Trial
+from agents.game import RepeatedReferenceGame, Trial
 from training.dpo_trainer import DPOTrainer
 from training.model_constants import get_lora_target_modules
 from agents.hf_speakers import GenerateSpeaker

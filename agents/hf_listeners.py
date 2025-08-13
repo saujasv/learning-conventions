@@ -6,7 +6,7 @@ from accelerate import find_executable_batch_size
 import itertools
 from pathlib import Path
 import numpy as np
-from game import RepeatedReferenceGame, Trial
+from .game import RepeatedReferenceGame, Trial
 from .base_agent import BaseListener
 from transformers import PreTrainedModel, ProcessorMixin
 from typing import Any, Literal, Optional, Union

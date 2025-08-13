@@ -1,7 +1,7 @@
 from typing import List, Dict
 import numpy as np
 import random
-from game import RepeatedReferenceGame, Trial
+from agents.game import RepeatedReferenceGame, Trial
 import spacy
 from Levenshtein import distance as edit_distance
 import jsonlines

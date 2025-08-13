@@ -1,6 +1,6 @@
 from typing import List, Optional
 import jsonlines
-from game import RepeatedReferenceGame, Trial
+from .game import RepeatedReferenceGame, Trial
 
 
 class ReplaySpeaker:

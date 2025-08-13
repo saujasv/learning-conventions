@@ -10,7 +10,7 @@ from .prompts import (
     SPEAKER_USER_PROMPT_PHOTOGRAPHS,
 )
 from pathlib import Path
-from game import RepeatedReferenceGame, Trial
+from .game import RepeatedReferenceGame, Trial
 import openai
 import random
 

@@ -1,4 +1,4 @@
-from game import RepeatedReferenceGame, Trial
+from agents.game import RepeatedReferenceGame, Trial
 import json
 import inflect
 import random
@@ -182,7 +182,8 @@ def sample_training_games(
     min_parts=0,
     max_parts=0,
     reuse_descriptions=False,
-    oracle_listener=False,
+    oracle_listener_history=False,
+    oracle_listener_response=False,
 ):
     with open(kilogram_data_path) as f:
         kilogram_descriptions = json.load(f)
@@ -200,16 +201,39 @@ def sample_training_games(
             min_parts,
             max_parts,
             reuse_descriptions,
-            oracle_listener,
+            oracle_listener_history,
         )
 
         if incremental:
             for i, t in enumerate(game.trials):
+                if oracle_listener_response:
+                    interpretation = {
+                        x: 1 if x == t.target else 0 for x in game.context
+                    }
+                else:
+                    selection = random.choice(game.context)
+                    selection_image = add_extension(selection)
+                    interpretation = {
+                        x: 1 if x == selection_image else 0 for x in game.context
+                    }
+
                 incremental_game = RepeatedReferenceGame(
-                    context=game.context, trials=game.trials[: i + 1]
+                    context=game.context,
+                    trials=[
+                        *game.trials[:i],
+                        Trial(
+                            target=t.target,
+                            message=t.message,
+                            interpretation=interpretation,
+                        ),
+                    ],
                 )
                 games.append(incremental_game)
         else:
+            if oracle_listener_response != oracle_listener_history:
+                raise ValueError(
+                    "oracle_listener_response and oracle_listener_history must be the same if games are not incremental"
+                )
             games.append(game)
 
     with jsonlines.open(save_path, "w") as writer:

@@ -6,8 +6,8 @@ import sys
 from copy import deepcopy
 import itertools
 from pathlib import Path
-from game import RepeatedReferenceGame, Trial
-from .chat_listener import ChatListener
+from .game import RepeatedReferenceGame, Trial
+from .base_agent import BaseAgent
 from .hf_listeners import ScoringListener
 from .hf_speakers import GenerateSpeaker
 

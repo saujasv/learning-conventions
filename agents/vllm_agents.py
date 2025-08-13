@@ -8,7 +8,7 @@ from vllm.inputs import TokensPrompt
 from .base_agent import BaseListener, BaseSpeaker
 from .utils import CHAT_TEMPLATE, QWEN_CHAT_TEMPLATE
 from pathlib import Path
-from game import RepeatedReferenceGame, Trial
+from .game import RepeatedReferenceGame, Trial
 
 
 class vLLMAgent:

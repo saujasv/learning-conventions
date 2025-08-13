@@ -2,7 +2,7 @@ import itertools
 import random
 from typing import Any, Literal, Optional, Tuple, Union
 import json
-from game import RepeatedReferenceGame, Trial
+from .game import RepeatedReferenceGame, Trial
 
 
 class BaseAgent:

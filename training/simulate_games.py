@@ -3,7 +3,7 @@ import uuid
 from copy import deepcopy
 import numpy as np
 import itertools
-from game import RepeatedReferenceGame, Trial
+from agents.game import RepeatedReferenceGame, Trial
 from agents.base_agent import BaseSpeaker, BaseListener
 from agents.hf_speakers import GenerateSpeaker
 from agents.static_agents import ReplaySpeaker, OracleListener
@@ -139,7 +139,9 @@ def select_next_trial_best(game, sampled_trials, preference_criterion=None):
     Select the best trial from the sampled trials.
     """
     if preference_criterion is None:
-        preference_criterion = PREFERENCE_FUNCTIONS["informativity_and_cost_preference"]
+        preference_criterion = PREFERENCE_FUNCTIONS[
+            "hard_correctness_or_cost_preference"
+        ]
 
     preference_pairs = make_preference_pairs_copeland(
         game, sampled_trials, preference_criterion
@@ -151,9 +153,20 @@ def select_next_trial_best(game, sampled_trials, preference_criterion=None):
     return preference_pairs[0][0]
 
 
+def select_next_trial_mix(game, sampled_trials, preference_criterion=None):
+    """
+    Select the best trial from the sampled trials.
+    """
+    if random.random() < 0.5:
+        return select_next_trial_best(game, sampled_trials, preference_criterion)
+    else:
+        return select_next_trial_random(game, sampled_trials, preference_criterion)
+
+
 SELECT_NEXT_TRIAL_FUNCTIONS = {
     "select_next_trial_random": select_next_trial_random,
     "select_next_trial_best": select_next_trial_best,
+    "select_next_trial_mix": select_next_trial_mix,
 }
 
 

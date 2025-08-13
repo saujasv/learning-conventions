@@ -15,7 +15,7 @@ from transformers import (
     PixtralProcessor,
 )
 from datasets import load_dataset
-from game import RepeatedReferenceGame
+from agents.game import RepeatedReferenceGame
 from training.collator import RepeatedReferenceGameCollator
 from training.model_constants import get_lora_target_modules
 from agents import GenerateSpeaker, ScoringListener

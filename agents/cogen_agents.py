@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath(script_dir))
 from cogen.models.joint_inference import IdeficsJointInferenceModel
 from cogen.continual_learning.train_utils import filter_targets
 from transformers import Idefics2ForConditionalGeneration, AutoProcessor
-from game import RepeatedReferenceGame, Trial
+from .game import RepeatedReferenceGame, Trial
 
 
 class CoGenAgent:

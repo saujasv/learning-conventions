@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from transformers.generation.logits_process import LogitsProcessor
-from game import RepeatedReferenceGame, Trial
+from .game import RepeatedReferenceGame, Trial
 from PIL import Image
 
 

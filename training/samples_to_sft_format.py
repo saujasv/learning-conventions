@@ -1,5 +1,5 @@
 import pandas as pd
-from game import Trial
+from agents.game import Trial
 
 
 def convert_to_sft_format(input_file, output_file):

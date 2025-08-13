@@ -15,7 +15,7 @@ from .prompts import (
     SPEAKER_USER_PROMPT_TARGET,
 )
 from .utils import ContrastiveDecodingProcessor
-from game import RepeatedReferenceGame
+from .game import RepeatedReferenceGame
 
 
 class GenerateSpeaker(BaseSpeaker):

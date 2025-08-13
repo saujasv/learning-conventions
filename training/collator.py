@@ -8,7 +8,7 @@ from transformers import (
 )
 from accelerate import Accelerator
 from transformers.feature_extraction_utils import BatchFeature
-from game import RepeatedReferenceGame, Trial
+from agents.game import RepeatedReferenceGame, Trial
 import itertools
 from PIL import Image
 import numpy as np
