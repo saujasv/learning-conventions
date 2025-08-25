@@ -18,16 +18,8 @@ from training.simulation_utils import (
     sequence_targets,
     sequence_targets_blocks,
     TargetSequenceReplay,
-    informativity_and_cost_preference,
-    informativity_margin_and_cost_preference,
-    correctness_and_cost_preference,
-    informativity_preference,
-    length_change_preference,
     sequence_targets_blocks_controlled,
-    wnr_change_preference,
-    correctness_preference,
     hard_correctness_preference,
-    hard_correctness_and_cost_preference,
     hard_correctness_or_cost_preference,
     cost_preference,
 )
@@ -37,15 +29,7 @@ from pathlib import Path
 
 # Map preference criterion names to functions
 PREFERENCE_FUNCTIONS = {
-    "informativity_and_cost_preference": informativity_and_cost_preference,
-    "informativity_preference": informativity_preference,
-    "length_change_preference": length_change_preference,
-    "wnr_change_preference": wnr_change_preference,
-    "informativity_margin_and_cost_preference": informativity_margin_and_cost_preference,
-    "correctness_and_cost_preference": correctness_and_cost_preference,
-    "correctness_preference": correctness_preference,
     "hard_correctness_preference": hard_correctness_preference,
-    "hard_correctness_and_cost_preference": hard_correctness_and_cost_preference,
     "hard_correctness_or_cost_preference": hard_correctness_or_cost_preference,
     "cost_preference": cost_preference,
 }
@@ -341,9 +325,6 @@ def run_sampling(config_path: str):
             speaker_model_type,
             speaker_model,
             speaker_processor,
-            system_prompt_template=SPEAKER_SYSTEM_PROMPT_BASIC,
-            user_prompt=SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC,
-            target_prompt_template=SPEAKER_USER_PROMPT_TARGET_BASIC,
             **config.get("speaker_config"),
         )
 

@@ -3,6 +3,7 @@ import random
 from typing import Any, Literal, Optional, Tuple, Union
 import json
 from .game import RepeatedReferenceGame, Trial
+from string import Template
 
 
 class BaseAgent:
@@ -691,7 +692,7 @@ class BaseSpeaker(BaseAgent):
 
                 self.system_prompt_template = SPEAKER_SYSTEM_PROMPT_BASIC
             else:
-                self.system_prompt_template = system_prompt_template
+                self.system_prompt_template = Template(system_prompt_template)
 
             if user_prompt is None:
                 from .prompts import SPEAKER_USER_PROMPT_PHOTOGRAPHS_BASIC
@@ -705,7 +706,7 @@ class BaseSpeaker(BaseAgent):
 
                 self.target_prompt_template = SPEAKER_USER_PROMPT_TARGET_BASIC
             else:
-                self.target_prompt_template = target_prompt_template
+                self.target_prompt_template = Template(target_prompt_template)
 
     def get_label(
         self, context: Tuple[str], item: Optional[str], is_demonstration: bool = False

@@ -40,8 +40,10 @@ def get_chat_template_features(agent):
         else:
             raise ValueError(f"Unsupported agent type for Pixtral: {agent.model_type}")
     elif isinstance(processor, Gemma3Processor):
-        if agent.model_type == "chat":
+        if agent.model_type == "chat" and isinstance(agent, GenerateSpeaker):
             return "<start_of_turn>model\n", "<start_of_turn>user\n"
+        elif agent.model_type == "chat" and isinstance(agent, ScoringListener):
+            return "a single letter).\n", "<eos>"
         elif agent.model_type == "base" and isinstance(agent, GenerateSpeaker):
             return " description:\n", "\nFeedback"
         elif agent.model_type == "base" and isinstance(agent, ScoringListener):
