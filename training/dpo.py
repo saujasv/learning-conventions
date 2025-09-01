@@ -162,7 +162,15 @@ def train():
         peft_config=get_peft_config(model_config),
     )
 
-    trainer.train(resume_from_checkpoint=training_args.resume_from_checkpoint)
+    if (
+        Path(training_args.output_dir).exists()
+        and len(list(Path(training_args.output_dir).glob("checkpoint-*"))) > 0
+    ):
+        print("Resuming from checkpoint")
+        trainer.train(resume_from_checkpoint=True)
+    else:
+        print("Starting from scratch")
+        trainer.train()
 
     # Save and push to hub
     trainer.save_model(training_args.output_dir)
