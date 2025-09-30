@@ -56,6 +56,8 @@ class OpenAIAPISpeaker(OpenAIAPIAgent, BaseSpeaker):
             base_url=base_url,
         )
 
+        self.model_type = "chat"
+
         self.context_presentation = context_presentation
         self.feedback_label = feedback_label
         self.system_prompt_template = system_prompt_template
@@ -113,6 +115,7 @@ class OpenAIAPIListener(OpenAIAPIAgent, BaseListener):
             model=model,
             base_url=base_url,
         )
+        self.model_type = "chat"
 
         self.context_presentation = context_presentation
         self.feedback_label = feedback_label
@@ -121,10 +124,7 @@ class OpenAIAPIListener(OpenAIAPIAgent, BaseListener):
         self.image_format = image_format
 
         if generation_config is None:
-            self.generation_config = {
-                "max_tokens": 8,
-                "temperature": 0,
-            }
+            self.generation_config = {}
         else:
             self.generation_config = generation_config
 

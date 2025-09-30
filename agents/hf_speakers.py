@@ -265,7 +265,9 @@ class GenerateSpeaker(BaseSpeaker):
             )
 
         response = [
-            x.strip()
+            x.strip().replace(
+                "<EOM>", ""
+            )  # Some models don't learn to end utterances well with the default EOS token so this forces them to do so
             for x in self.processor.batch_decode(
                 outputs[:, processed.input_ids.shape[1] :], skip_special_tokens=True
             )

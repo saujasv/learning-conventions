@@ -33,7 +33,7 @@
         {{ raise_exception("Invalid content type") }}
     {%- endif -%}
     {%- if role != 'user' -%}
-        {{ '</s>\n' }}
+        {{ '<EOM>\n' }}
     {%- else -%}
         {{ '\n' }}
     {%- endif -%}

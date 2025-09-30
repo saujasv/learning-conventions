@@ -14,7 +14,7 @@ from transformers import (
 )
 import pandas as pd
 from agents.game import RepeatedReferenceGame, Trial
-from training.dpo_trainer import DPOTrainer
+from training.dpo_trainer import DPOTrainer, DataCollatorForPreference
 from training.model_constants import get_lora_target_modules
 from agents.hf_speakers import GenerateSpeaker
 from agents.args import AgentArguments
@@ -68,6 +68,7 @@ def train():
         if model_config.torch_dtype in ["auto", None]
         else getattr(torch, model_config.torch_dtype)
     )
+    print(f"torch_dtype: {torch_dtype}")
 
     processor = AutoProcessor.from_pretrained(
         model_config.model_name_or_path,
@@ -116,6 +117,9 @@ def train():
         chat_template_file=agent_args.chat_template_file,
         demonstration_game=agent_args.demonstration_game,
         max_image_size=agent_args.max_image_size,
+        system_prompt_template=agent_args.system_prompt_template,
+        user_prompt=agent_args.user_prompt,
+        target_prompt_template=agent_args.target_prompt_template,
     )
 
     train_df = pd.read_json(
@@ -151,6 +155,12 @@ def train():
     # Training
     ################
 
+    data_collator = DataCollatorForPreference(
+        processor=agent.processor,
+        pad_token_id=agent.processor.tokenizer.pad_token_id,
+        max_image_size=agent.max_image_size,
+    )
+
     trainer = DPOTrainer(
         model=model,
         args=training_args,
@@ -158,7 +168,8 @@ def train():
         eval_dataset=(
             validation_dataset if training_args.eval_strategy != "no" else None
         ),
-        processing_class=processor,
+        data_collator=data_collator,
+        processing_class=agent.processor,
         peft_config=get_peft_config(model_config),
     )
 

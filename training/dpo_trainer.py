@@ -90,6 +90,82 @@ if is_deepspeed_available():
     import deepspeed
 
 
+def flush_right(mask: torch.Tensor, *tensors: torch.Tensor) -> tuple[torch.Tensor, ...]:
+    """
+    Shift non-zero elements in the mask and corresponding tensors to the right.
+
+    This function operates on a binary mask and any number of additional tensors with the same dimensions as the mask.
+    For each row, non-zero values are shifted to the rightmost positions (preserving their relative order). Then,
+    columns that contain only zeros across all rows at the beginning are truncated from the mask and tensors. Visually,
+    this operation can be represented as follows:
+
+    ```
+    [[0, 0, x, x, x],   ->  [[x, x, x],
+     [0, x, x, 0, 0]]       [0, x, x]]
+    ```
+
+    Args:
+
+        mask (`torch.Tensor`):
+            2D tensor (binary mask) with shape `(N, M)`.
+        *tensors (`torch.Tensor`)
+            One or more 2D tensors with the same shape as `mask`. These tensors will be processed alongside `mask`,
+            with non-zero values shifted and excess zero columns truncated in the same manner.
+
+    Returns:
+        `torch.Tensor`:
+            Updated binary mask with non-zero values flushed to the right and leading zero-only columns removed.
+        `*torch.Tensor`
+            Updated tensors, processed in the same way as the mask.
+
+    Example:
+    ```python
+    >>> mask = torch.tensor([[0, 0, 1, 1, 1],
+    ...                      [0, 1, 1, 0, 0]])
+    >>> tensor = torch.tensor([[9, 9, 2, 3, 4],
+    ...                        [9, 5, 6, 9, 9]])
+    >>> new_mask, new_tensor = flush_right(mask, tensor)
+    >>> print(new_mask)
+        tensor([[1, 1, 1],
+                [0, 1, 1]])
+    >>> print(new_tensor)
+        tensor([[2, 3, 4],
+                [9, 5, 6]])
+    ```
+    """
+    # Create copy of mask and tensors
+    mask = mask.clone()
+    tensors = [t.clone() for t in tensors]
+
+    # Shift non-zero values to the right
+    for i in range(mask.size(0)):
+        nonzero_indices = torch.nonzero(mask[i])
+        if nonzero_indices.numel() == 0:
+            continue
+        last_one_idx = nonzero_indices[-1].item()
+        shift = (mask.size(1) - 1) - last_one_idx
+        if shift != 0:
+            mask[i] = torch.roll(mask[i], shifts=shift)
+            for tensor in tensors:
+                tensor[i] = torch.roll(tensor[i], shifts=shift)
+
+    # Remove leading columns that are all zeros across rows
+    non_empty_cols = torch.sum(mask, dim=0) != 0
+    first_non_empty_col = (
+        torch.nonzero(non_empty_cols)[0].item()
+        if non_empty_cols.any()
+        else mask.size(1)
+    )
+    mask = mask[:, first_non_empty_col:]
+    for i, tensor in enumerate(tensors):
+        tensors[i] = tensor[:, first_non_empty_col:]
+
+    if not tensors:
+        return mask
+    else:
+        return mask, *tensors
+
+
 @dataclass
 class DataCollatorForPreference:
     """
@@ -129,6 +205,7 @@ class DataCollatorForPreference:
 
     processor: ProcessorMixin
     pad_token_id: int
+    max_image_size: Optional[int] = None
 
     def torch_call(
         self, examples: list[Union[list[int], Any, dict[str, Any]]]
@@ -153,17 +230,11 @@ class DataCollatorForPreference:
             torch.ones_like(input_ids) for input_ids in rejected_input_ids
         ]
         if "pixel_values" in examples[0]:
-            # pixel_values = [
-            #     torch.as_tensor(example["pixel_values"]) for example in examples
-            # ]
             pixel_values_np = np.array(
                 [example["pixel_values"] for example in examples]
             )
-            pixel_values = torch.from_numpy(pixel_values_np)
+            pixel_values = torch.from_numpy(pixel_values_np).to(torch.bfloat16)
         if "pixel_attention_mask" in examples[0]:
-            # pixel_attention_mask = [
-            #     torch.tensor(example["pixel_attention_mask"]) for example in examples
-            # ]
             pixel_attention_mask_np = np.array(
                 [example["pixel_attention_mask"] for example in examples]
             )
@@ -202,9 +273,12 @@ class DataCollatorForPreference:
         if "pixel_attention_mask" in examples[0]:
             output["pixel_attention_mask"] = pad(pixel_attention_mask, padding_value=0)
         if "image_sizes" in examples[0]:
-            output["image_sizes"] = torch.tensor(
-                [example["image_sizes"] for example in examples]
-            )
+            output["image_sizes"] = [example["image_sizes"] for example in examples]
+        if "image_grid_thw" in examples[0]:
+            output["image_grid_thw"] = [
+                example["image_grid_thw"] for example in examples
+            ]
+
         if "ref_chosen_logps" in examples[0] and "ref_rejected_logps" in examples[0]:
             output["ref_chosen_logps"] = ref_chosen_logps
             output["ref_rejected_logps"] = ref_rejected_logps
@@ -226,6 +300,11 @@ class DataCollatorForPreference:
                 images=[Image.open(img).convert("RGB") for img in x["images"]],
                 text=[p["prompt"]],
                 add_special_tokens=False,
+                size=(
+                    {"longest_edge": self.max_image_size}
+                    if self.max_image_size
+                    else None
+                ),
             )
             for (x, p) in zip(examples, processed_inputs)
         ]
@@ -261,6 +340,12 @@ class DataCollatorForPreference:
                 )
             ]
         )
+
+        if "image_sizes" in processed_features[0].keys():
+            output["image_sizes"] = [x["image_sizes"] for x in processed_features]
+
+        if "image_grid_thw" in processed_features[0].keys():
+            output["image_grid_thw"] = [x["image_grid_thw"] for x in processed_features]
 
         return output
 
@@ -884,6 +969,9 @@ class DPOTrainer(Trainer):
         if "image_sizes" in processed_features:
             output["image_sizes"] = processed_features["image_sizes"][0]
 
+        if "image_grid_thw" in processed_features:
+            output["image_grid_thw"] = processed_features["image_grid_thw"][0]
+
         return output
 
     def _prepare_deepspeed(self, model: PreTrainedModelWrapper):
@@ -1153,9 +1241,16 @@ class DPOTrainer(Trainer):
                 [batch["pixel_attention_mask"], batch["pixel_attention_mask"]], dim=0
             )
         if "image_sizes" in batch:
-            output["image_sizes"] = torch.cat(
-                [batch["image_sizes"], batch["image_sizes"]], dim=0
-            )
+            # output["image_sizes"] = torch.cat(
+            #     [batch["image_sizes"], batch["image_sizes"]], dim=0
+            # )
+            output["image_sizes"] = [*batch["image_sizes"][0], *batch["image_sizes"][0]]
+
+        if "image_grid_thw" in batch:
+            output["image_grid_thw"] = [
+                *batch["image_grid_thw"][0],
+                *batch["image_grid_thw"][0],
+            ]
 
         # Concatenate the chosen and rejected completions
         max_completion_length = max(
@@ -1433,7 +1528,13 @@ class DPOTrainer(Trainer):
                 "pixel_attention_mask"
             ]
         if "image_sizes" in concatenated_batch:
-            model_kwargs["image_sizes"] = concatenated_batch["image_sizes"]
+            model_kwargs["image_sizes"] = [
+                x.to("cpu") for x in concatenated_batch["image_sizes"]
+            ]
+        if "image_grid_thw" in concatenated_batch:
+            model_kwargs["image_grid_thw"] = torch.from_numpy(
+                np.stack([x for x in concatenated_batch["image_grid_thw"]]),
+            ).to(model_kwargs["pixel_values"].device)
 
         prompt_input_ids = concatenated_batch["prompt_input_ids"]
         prompt_attention_mask = concatenated_batch["prompt_attention_mask"]
@@ -1465,10 +1566,12 @@ class DPOTrainer(Trainer):
                 dim=1,
             )
 
-            # Flush left to reduce the memory usage
+            # Flush right to reduce the memory usage
+            # Model classes check whether there are padding tokens on the right of
+            # attention_mask, so we need to flush right to reduce the memory usage
             # [[0, 0, x, x, x, x],  ->  [[x, x, x, x],
-            #  [0, x, x, x, 0, 0]]       [x, x, x, 0]]
-            attention_mask, input_ids, loss_mask = flush_left(
+            #  [0, x, x, x, 0, 0]]       [0, x, x, x]]
+            attention_mask, input_ids, loss_mask = flush_right(
                 attention_mask, input_ids, loss_mask
             )
 
