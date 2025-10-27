@@ -10,8 +10,7 @@ import base64
 from PIL import Image
 import random
 from pathlib import Path
-from .chat_listener import ChatListener
-from .chat_speaker import ChatSpeaker
+from .base_agent import BaseListener, BaseSpeaker
 
 
 class GPTAgent:
@@ -80,7 +79,7 @@ class GPTAgent:
             return f"data:image/png;base64,{base64.b64encode(image_file.read()).decode("utf-8")}"
 
 
-class GPTSpeaker(GPTAgent, ChatSpeaker):
+class GPTSpeaker(GPTAgent, BaseSpeaker):
     def __init__(
         self,
         model,
@@ -109,7 +108,7 @@ class GPTSpeaker(GPTAgent, ChatSpeaker):
         self.prompt_type = prompt_type
 
 
-class GPTListener(GPTAgent, ChatListener):
+class GPTListener(GPTAgent, BaseListener):
     def __init__(
         self,
         model,

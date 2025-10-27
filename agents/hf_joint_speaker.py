@@ -6,19 +6,17 @@ import sys
 from copy import deepcopy
 import itertools
 from pathlib import Path
-from game import RepeatedReferenceGame, Trial
-from .chat_listener import ChatListener
+from .game import RepeatedReferenceGame, Trial
+from .base_agent import BaseAgent
 from .hf_listeners import ScoringListener
-from .hf_speakers import GenerateSpeaker, ScoringSpeaker
+from .hf_speakers import GenerateSpeaker
 
 
 class JointInferenceSpeaker:
     def __init__(
         self,
-        speaker_model,
-        speaker_processor,
-        listener_model,
-        listener_processor,
+        model,
+        processor,
         image_base_path: str = "",
         speaker_lambda=0.5,
         num_speaker_samples=5,
@@ -30,22 +28,22 @@ class JointInferenceSpeaker:
         speaker_generation_config=None,
     ):
         self.listener = ScoringListener(
-            listener_model,
-            listener_processor,
+            model,
+            processor,
             image_base_path,
             context_presentation=listener_context_presentation,
             feedback_label=listener_feedback_label,
         )
         self.generate_speaker = GenerateSpeaker(
-            speaker_model,
-            speaker_processor,
+            model,
+            processor,
             image_base_path,
             context_presentation=speaker_context_presentation,
             feedback_label=speaker_feedback_label,
             generation_config=speaker_generation_config,
             prompt_type=speaker_prompt_type,
         )
-        self.scoring_speaker = ScoringSpeaker(
+        self.scoring_speaker = GenerateSpeaker(
             speaker_model,
             speaker_processor,
             image_base_path,
