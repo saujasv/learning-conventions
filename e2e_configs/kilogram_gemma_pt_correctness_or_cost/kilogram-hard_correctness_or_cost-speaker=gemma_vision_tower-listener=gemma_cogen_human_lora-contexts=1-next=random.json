@@ -1,0 +1,50 @@
+{
+    "speaker_model": {
+        "pretrained_model_name_or_path": "/data/tir/projects/tir3/users/svadugur/learning-conventions/models/kilogram-cogen_human_pretrain-speaker-vision_tower-1e-5/checkpoint-6250",
+        "device_map": "cuda:0",
+        "torch_dtype": "bfloat16",
+        "attn_implementation": "flash_attention_2"
+    },
+    "speaker_processor": {
+        "pretrained_model_name_or_path": "google/gemma-3-12b-pt"
+    },
+    "speaker_model_type": "base",
+    "speaker_config": {
+        "generation_config": {
+            "do_sample": true,
+            "max_new_tokens": 64,
+            "temperature": 1.0,
+            "top_p": 0.95
+        },
+        "context_presentation": "once",
+        "chat_template_file": "agents/gemma-3-pt-chat-template.jinja",
+        "contrastive_decoding": false,
+        "demonstration_game": "data/kilogram-4-image-contexts/demo.json"
+    },
+    "listener_model": {
+        "pretrained_model_name_or_path": "/data/tir/projects/tir3/users/svadugur/learning-conventions/models/kilogram-cogen_human_pretrain-listener-vision_tower-lora-merged",
+        "device_map": "cuda:1",
+        "torch_dtype": "bfloat16",
+        "attn_implementation": {
+            "text_config": "flash_attention_2"
+        }
+    },
+    "listener_processor": {
+        "pretrained_model_name_or_path": "google/gemma-3-12b-pt"
+    },
+    "listener_model_type": "base",
+    "listener_config": {
+        "feedback_label": true,
+        "context_presentation": "last_shuffle",
+        "chat_template_file": "agents/gemma-3-pt-chat-template.jinja",
+        "ensemble": 1
+    },
+    "num_trials": 20,
+    "num_samples": 4,
+    "target_lengths": null,
+    "target_sequence_function": "sequence_targets_blocks",
+    "contexts_file": "data/kilogram-4-image-contexts/kilogram_finetune-contexts-1-105.json",
+    "save_file": "results/sampling_9_14/kilogram-hard_correctness_or_cost-speaker=gemma_vision_tower-listener=gemma_cogen_human_lora-contexts=1-next=random.jsonl",
+    "select_next_trial": "select_next_trial_random",
+    "preference_criterion": "hard_correctness_or_cost_preference"
+}
