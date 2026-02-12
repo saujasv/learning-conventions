@@ -1,0 +1,50 @@
+{
+    "context": [
+        "train2014/COCO_train2014_000000386973.jpg",
+        "train2014/COCO_train2014_000000032997.jpg",
+        "train2014/COCO_train2014_000000276694.jpg",
+        "train2014/COCO_train2014_000000480495.jpg"
+    ],
+    "trials": [
+        {
+            "target": "train2014/COCO_train2014_000000032997.jpg",
+            "message": "A man on a motor bike transporting fresh green bananas.",
+            "interpretation": {
+                "train2014/COCO_train2014_000000386973.jpg": -Infinity,
+                "train2014/COCO_train2014_000000032997.jpg": 0,
+                "train2014/COCO_train2014_000000276694.jpg": -Infinity,
+                "train2014/COCO_train2014_000000480495.jpg": -Infinity
+            }
+        },
+        {
+            "target": "train2014/COCO_train2014_000000480495.jpg",
+            "message": "A group of people are playing with kites at the park.",
+            "interpretation": {
+                "train2014/COCO_train2014_000000386973.jpg": -Infinity,
+                "train2014/COCO_train2014_000000032997.jpg": -Infinity,
+                "train2014/COCO_train2014_000000276694.jpg": -Infinity,
+                "train2014/COCO_train2014_000000480495.jpg": 0
+            }
+        },
+        {
+            "target": "train2014/COCO_train2014_000000276694.jpg",
+            "message": "A room with wooden flooring with a desk and two chairs on it. The desk has a computer and a notebook on it.There are also two beds in the room.",
+            "interpretation": {
+                "train2014/COCO_train2014_000000386973.jpg": -Infinity,
+                "train2014/COCO_train2014_000000032997.jpg": -Infinity,
+                "train2014/COCO_train2014_000000276694.jpg": 0,
+                "train2014/COCO_train2014_000000480495.jpg": -Infinity
+            }
+        },
+        {
+            "target": "train2014/COCO_train2014_000000386973.jpg",
+            "message": "A car with a bike tied to the back of it.",
+            "interpretation": {
+                "train2014/COCO_train2014_000000386973.jpg": 0,
+                "train2014/COCO_train2014_000000032997.jpg": -Infinity,
+                "train2014/COCO_train2014_000000276694.jpg": -Infinity,
+                "train2014/COCO_train2014_000000480495.jpg": -Infinity
+            }
+        }
+    ]
+}

@@ -1,0 +1,50 @@
+{
+    "context": [
+        "page4-164.jpg",
+        "page6-64.jpg",
+        "page4-207.jpg",
+        "page2-133.jpg"
+    ],
+    "trials": [
+        {
+            "target": "page6-64.jpg",
+            "message": "looks like a crab facing left with a triangle at its mouth and diamond tail on right",
+            "interpretation": {
+                "page4-164.jpg": -Infinity,
+                "page6-64.jpg": 0,
+                "page4-207.jpg": -Infinity,
+                "page2-133.jpg": -Infinity
+            }
+        },
+        {
+            "target": "page2-133.jpg",
+            "message": "A slanted rectangle at the bottom, then at the top it is a thin vertical rectangle",
+            "interpretation": {
+                "page4-164.jpg": -Infinity,
+                "page6-64.jpg": -Infinity,
+                "page4-207.jpg": -Infinity,
+                "page2-133.jpg": 0
+            }
+        },
+        {
+            "target": "page4-207.jpg",
+            "message": "weird C",
+            "interpretation": {
+                "page4-164.jpg": -Infinity,
+                "page6-64.jpg": -Infinity,
+                "page4-207.jpg": 0,
+                "page2-133.jpg": -Infinity
+            }
+        },
+        {
+            "target": "page4-164.jpg",
+            "message": "L + square hovering above at top right corner",
+            "interpretation": {
+                "page4-164.jpg": 0,
+                "page6-64.jpg": -Infinity,
+                "page4-207.jpg": -Infinity,
+                "page2-133.jpg": -Infinity
+            }
+        }
+    ]
+}

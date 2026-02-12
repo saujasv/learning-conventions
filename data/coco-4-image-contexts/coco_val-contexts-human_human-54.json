@@ -1,0 +1,326 @@
+{
+    "0316-f782f20f-6b40-4846-b1f7-e5e8447b87c9": [
+        "val2014/COCO_val2014_000000166401.jpg",
+        "val2014/COCO_val2014_000000140076.jpg",
+        "val2014/COCO_val2014_000000290477.jpg",
+        "val2014/COCO_val2014_000000213224.jpg"
+    ],
+    "0518-1801bcc1-4d64-464c-99f3-6e4bc34d2b9a": [
+        "val2014/COCO_val2014_000000454907.jpg",
+        "val2014/COCO_val2014_000000053697.jpg",
+        "val2014/COCO_val2014_000000548523.jpg",
+        "val2014/COCO_val2014_000000027285.jpg"
+    ],
+    "0525-6aa6a04d-370d-4465-8024-fb0fb373fac0": [
+        "val2014/COCO_val2014_000000194903.jpg",
+        "val2014/COCO_val2014_000000281500.jpg",
+        "val2014/COCO_val2014_000000567276.jpg",
+        "val2014/COCO_val2014_000000428254.jpg"
+    ],
+    "0727-2931b6d4-585e-4d15-9737-764bc0cb77f3": [
+        "val2014/COCO_val2014_000000551650.jpg",
+        "val2014/COCO_val2014_000000419074.jpg",
+        "val2014/COCO_val2014_000000455943.jpg",
+        "val2014/COCO_val2014_000000161044.jpg"
+    ],
+    "0788-0101405f-5745-4c8c-a882-d4eaf34b45fd": [
+        "val2014/COCO_val2014_000000408534.jpg",
+        "val2014/COCO_val2014_000000339676.jpg",
+        "val2014/COCO_val2014_000000272958.jpg",
+        "val2014/COCO_val2014_000000317070.jpg"
+    ],
+    "1006-8a964204-bce4-48de-9bb1-2933a4c017f7": [
+        "val2014/COCO_val2014_000000436138.jpg",
+        "val2014/COCO_val2014_000000479099.jpg",
+        "val2014/COCO_val2014_000000201004.jpg",
+        "val2014/COCO_val2014_000000338826.jpg"
+    ],
+    "1462-0f5defdf-dbd8-48d7-abdc-f4be3269ba28": [
+        "val2014/COCO_val2014_000000102478.jpg",
+        "val2014/COCO_val2014_000000124712.jpg",
+        "val2014/COCO_val2014_000000541123.jpg",
+        "val2014/COCO_val2014_000000377588.jpg"
+    ],
+    "1733-362e3f99-ce8f-43b1-bc27-4c45de91aa40": [
+        "val2014/COCO_val2014_000000019763.jpg",
+        "val2014/COCO_val2014_000000050422.jpg",
+        "val2014/COCO_val2014_000000044934.jpg",
+        "val2014/COCO_val2014_000000317798.jpg"
+    ],
+    "1769-4c90f5bb-b1da-4a22-a052-c282724b78e8": [
+        "val2014/COCO_val2014_000000391269.jpg",
+        "val2014/COCO_val2014_000000468162.jpg",
+        "val2014/COCO_val2014_000000535312.jpg",
+        "val2014/COCO_val2014_000000427965.jpg"
+    ],
+    "1970-9004306c-6812-4765-b5b3-c71fe2958c9f": [
+        "val2014/COCO_val2014_000000014592.jpg",
+        "val2014/COCO_val2014_000000460732.jpg",
+        "val2014/COCO_val2014_000000045387.jpg",
+        "val2014/COCO_val2014_000000360318.jpg"
+    ],
+    "2081-8e379b3a-c6df-4b3c-a596-87870350b8d5": [
+        "val2014/COCO_val2014_000000347253.jpg",
+        "val2014/COCO_val2014_000000267521.jpg",
+        "val2014/COCO_val2014_000000036492.jpg",
+        "val2014/COCO_val2014_000000283498.jpg"
+    ],
+    "2088-b4bb52a2-3cd8-4303-85bf-ca3a90c6fd69": [
+        "val2014/COCO_val2014_000000322987.jpg",
+        "val2014/COCO_val2014_000000190700.jpg",
+        "val2014/COCO_val2014_000000475330.jpg",
+        "val2014/COCO_val2014_000000516766.jpg"
+    ],
+    "2421-6e995a34-20c9-4f55-be01-99f6707e0b72": [
+        "val2014/COCO_val2014_000000454907.jpg",
+        "val2014/COCO_val2014_000000053697.jpg",
+        "val2014/COCO_val2014_000000548523.jpg",
+        "val2014/COCO_val2014_000000027285.jpg"
+    ],
+    "2552-40d189c7-231f-4831-b884-3d0090e5d256": [
+        "val2014/COCO_val2014_000000568961.jpg",
+        "val2014/COCO_val2014_000000325666.jpg",
+        "val2014/COCO_val2014_000000178982.jpg",
+        "val2014/COCO_val2014_000000013168.jpg"
+    ],
+    "2575-894b8bf3-1a9e-40c8-acd2-9b3b73641f4a": [
+        "val2014/COCO_val2014_000000135785.jpg",
+        "val2014/COCO_val2014_000000476258.jpg",
+        "val2014/COCO_val2014_000000017003.jpg",
+        "val2014/COCO_val2014_000000251857.jpg"
+    ],
+    "2635-51f6aa15-c301-4b51-b134-c229603e1be5": [
+        "val2014/COCO_val2014_000000315939.jpg",
+        "val2014/COCO_val2014_000000248382.jpg",
+        "val2014/COCO_val2014_000000504977.jpg",
+        "val2014/COCO_val2014_000000388398.jpg"
+    ],
+    "2740-3a3091eb-b0ca-4ba2-8a33-8badb85efc06": [
+        "val2014/COCO_val2014_000000335119.jpg",
+        "val2014/COCO_val2014_000000579036.jpg",
+        "val2014/COCO_val2014_000000376677.jpg",
+        "val2014/COCO_val2014_000000087912.jpg"
+    ],
+    "4425-e80ade8f-82e5-40b4-9644-c9993e2ff689": [
+        "val2014/COCO_val2014_000000284220.jpg",
+        "val2014/COCO_val2014_000000580847.jpg",
+        "val2014/COCO_val2014_000000501898.jpg",
+        "val2014/COCO_val2014_000000191721.jpg"
+    ],
+    "4831-98a48100-302d-41ce-ac49-08a3c2e88ea4": [
+        "val2014/COCO_val2014_000000436138.jpg",
+        "val2014/COCO_val2014_000000479099.jpg",
+        "val2014/COCO_val2014_000000201004.jpg",
+        "val2014/COCO_val2014_000000338826.jpg"
+    ],
+    "4849-0a9c570b-f0fb-4f89-83fc-8670ae4942a7": [
+        "val2014/COCO_val2014_000000290602.jpg",
+        "val2014/COCO_val2014_000000465489.jpg",
+        "val2014/COCO_val2014_000000043314.jpg",
+        "val2014/COCO_val2014_000000514518.jpg"
+    ],
+    "4891-a9def950-a0fa-4d7b-a9ad-b34b5afac491": [
+        "val2014/COCO_val2014_000000331727.jpg",
+        "val2014/COCO_val2014_000000396542.jpg",
+        "val2014/COCO_val2014_000000249687.jpg",
+        "val2014/COCO_val2014_000000241638.jpg"
+    ],
+    "4988-f5ae366f-0bf8-4fd0-815a-6acd982277d6": [
+        "val2014/COCO_val2014_000000182170.jpg",
+        "val2014/COCO_val2014_000000363922.jpg",
+        "val2014/COCO_val2014_000000350855.jpg",
+        "val2014/COCO_val2014_000000447854.jpg"
+    ],
+    "4999-4061da0a-e0a0-4869-b18d-2f246c405706": [
+        "val2014/COCO_val2014_000000391269.jpg",
+        "val2014/COCO_val2014_000000468162.jpg",
+        "val2014/COCO_val2014_000000535312.jpg",
+        "val2014/COCO_val2014_000000427965.jpg"
+    ],
+    "5200-ecd26486-833f-4eef-bb12-04a51771a46c": [
+        "val2014/COCO_val2014_000000391199.jpg",
+        "val2014/COCO_val2014_000000059567.jpg",
+        "val2014/COCO_val2014_000000297578.jpg",
+        "val2014/COCO_val2014_000000386089.jpg"
+    ],
+    "5323-07d12ab3-2ddb-40d4-ae57-f802425c3276": [
+        "val2014/COCO_val2014_000000452263.jpg",
+        "val2014/COCO_val2014_000000027272.jpg",
+        "val2014/COCO_val2014_000000174457.jpg",
+        "val2014/COCO_val2014_000000083773.jpg"
+    ],
+    "5422-9323dec7-aef5-457a-9fce-bde223d83dd9": [
+        "val2014/COCO_val2014_000000102478.jpg",
+        "val2014/COCO_val2014_000000124712.jpg",
+        "val2014/COCO_val2014_000000541123.jpg",
+        "val2014/COCO_val2014_000000377588.jpg"
+    ],
+    "5463-bb90cd20-cc2c-428c-9775-d62716accacf": [
+        "val2014/COCO_val2014_000000344758.jpg",
+        "val2014/COCO_val2014_000000337247.jpg",
+        "val2014/COCO_val2014_000000198367.jpg",
+        "val2014/COCO_val2014_000000353558.jpg"
+    ],
+    "5646-5e626710-a547-4f40-b725-b305d48bdc4f": [
+        "val2014/COCO_val2014_000000040842.jpg",
+        "val2014/COCO_val2014_000000375509.jpg",
+        "val2014/COCO_val2014_000000142890.jpg",
+        "val2014/COCO_val2014_000000232383.jpg"
+    ],
+    "5669-3ed75614-b025-42de-9d64-9c58dfaf1267": [
+        "val2014/COCO_val2014_000000549789.jpg",
+        "val2014/COCO_val2014_000000195974.jpg",
+        "val2014/COCO_val2014_000000196442.jpg",
+        "val2014/COCO_val2014_000000033958.jpg"
+    ],
+    "5807-a6a4d6a1-cb42-48bc-823e-e4d7efc838aa": [
+        "val2014/COCO_val2014_000000334417.jpg",
+        "val2014/COCO_val2014_000000473237.jpg",
+        "val2014/COCO_val2014_000000359105.jpg",
+        "val2014/COCO_val2014_000000553667.jpg"
+    ],
+    "5911-c08be92f-1030-471b-8767-1edfefe72125": [
+        "val2014/COCO_val2014_000000083277.jpg",
+        "val2014/COCO_val2014_000000050326.jpg",
+        "val2014/COCO_val2014_000000285314.jpg",
+        "val2014/COCO_val2014_000000574666.jpg"
+    ],
+    "5989-b598be26-5041-4c6f-a5cc-ad63bb2955aa": [
+        "val2014/COCO_val2014_000000335119.jpg",
+        "val2014/COCO_val2014_000000579036.jpg",
+        "val2014/COCO_val2014_000000376677.jpg",
+        "val2014/COCO_val2014_000000087912.jpg"
+    ],
+    "6254-4d5fa351-4182-4e6b-ad6d-8b7177f48ad5": [
+        "val2014/COCO_val2014_000000551650.jpg",
+        "val2014/COCO_val2014_000000419074.jpg",
+        "val2014/COCO_val2014_000000455943.jpg",
+        "val2014/COCO_val2014_000000161044.jpg"
+    ],
+    "6560-a25f4783-ee0a-431e-9668-22d47611113f": [
+        "val2014/COCO_val2014_000000159716.jpg",
+        "val2014/COCO_val2014_000000256660.jpg",
+        "val2014/COCO_val2014_000000558640.jpg",
+        "val2014/COCO_val2014_000000214919.jpg"
+    ],
+    "6662-944feb90-3dcd-434a-9748-4a71417bb4d9": [
+        "val2014/COCO_val2014_000000436138.jpg",
+        "val2014/COCO_val2014_000000479099.jpg",
+        "val2014/COCO_val2014_000000201004.jpg",
+        "val2014/COCO_val2014_000000338826.jpg"
+    ],
+    "6856-521907d0-a42c-4fde-9df3-1d07ccec0f22": [
+        "val2014/COCO_val2014_000000359843.jpg",
+        "val2014/COCO_val2014_000000068740.jpg",
+        "val2014/COCO_val2014_000000483941.jpg",
+        "val2014/COCO_val2014_000000453390.jpg"
+    ],
+    "7149-868b1541-0361-485e-9d28-6f96b5f019aa": [
+        "val2014/COCO_val2014_000000092644.jpg",
+        "val2014/COCO_val2014_000000435308.jpg",
+        "val2014/COCO_val2014_000000050962.jpg",
+        "val2014/COCO_val2014_000000111909.jpg"
+    ],
+    "7231-af65094b-f170-4dad-b67d-66a1cb59c2d4": [
+        "val2014/COCO_val2014_000000289620.jpg",
+        "val2014/COCO_val2014_000000536416.jpg",
+        "val2014/COCO_val2014_000000566049.jpg",
+        "val2014/COCO_val2014_000000515792.jpg"
+    ],
+    "7458-763c31e9-7940-41bb-aad7-fab4468f4da2": [
+        "val2014/COCO_val2014_000000344758.jpg",
+        "val2014/COCO_val2014_000000337247.jpg",
+        "val2014/COCO_val2014_000000198367.jpg",
+        "val2014/COCO_val2014_000000353558.jpg"
+    ],
+    "7560-72dbf7e1-0071-48dc-a1db-0b02b3d6a839": [
+        "val2014/COCO_val2014_000000014592.jpg",
+        "val2014/COCO_val2014_000000460732.jpg",
+        "val2014/COCO_val2014_000000045387.jpg",
+        "val2014/COCO_val2014_000000360318.jpg"
+    ],
+    "7733-c04d8a0d-4cd9-4332-a8db-6e3307803df5": [
+        "val2014/COCO_val2014_000000194903.jpg",
+        "val2014/COCO_val2014_000000281500.jpg",
+        "val2014/COCO_val2014_000000567276.jpg",
+        "val2014/COCO_val2014_000000428254.jpg"
+    ],
+    "7782-75557c4c-1c0e-4c1f-aa2d-4da2ae7dc275": [
+        "val2014/COCO_val2014_000000568961.jpg",
+        "val2014/COCO_val2014_000000013168.jpg",
+        "val2014/COCO_val2014_000000325666.jpg",
+        "val2014/COCO_val2014_000000178982.jpg"
+    ],
+    "7874-32455593-721f-4fee-b4c3-bd9bd889489b": [
+        "val2014/COCO_val2014_000000199442.jpg",
+        "val2014/COCO_val2014_000000483358.jpg",
+        "val2014/COCO_val2014_000000423113.jpg",
+        "val2014/COCO_val2014_000000485212.jpg"
+    ],
+    "7958-0c3ed1b7-c739-47c3-bb63-8e557cddcef7": [
+        "val2014/COCO_val2014_000000182170.jpg",
+        "val2014/COCO_val2014_000000363922.jpg",
+        "val2014/COCO_val2014_000000350855.jpg",
+        "val2014/COCO_val2014_000000447854.jpg"
+    ],
+    "8039-3abd4361-6c49-4d5c-b641-7b4f299bd07d": [
+        "val2014/COCO_val2014_000000388846.jpg",
+        "val2014/COCO_val2014_000000490244.jpg",
+        "val2014/COCO_val2014_000000234595.jpg",
+        "val2014/COCO_val2014_000000022118.jpg"
+    ],
+    "8390-d31c89af-0510-428e-af13-c2322c67619c": [
+        "val2014/COCO_val2014_000000182170.jpg",
+        "val2014/COCO_val2014_000000363922.jpg",
+        "val2014/COCO_val2014_000000350855.jpg",
+        "val2014/COCO_val2014_000000447854.jpg"
+    ],
+    "8610-21be0e2f-2005-4f65-b986-f4cb75b60147": [
+        "val2014/COCO_val2014_000000136400.jpg",
+        "val2014/COCO_val2014_000000098268.jpg",
+        "val2014/COCO_val2014_000000000724.jpg",
+        "val2014/COCO_val2014_000000321308.jpg"
+    ],
+    "8922-46bdf5a5-05bd-41b2-90a2-8ea4b3a337f9": [
+        "val2014/COCO_val2014_000000193401.jpg",
+        "val2014/COCO_val2014_000000318888.jpg",
+        "val2014/COCO_val2014_000000212545.jpg",
+        "val2014/COCO_val2014_000000468043.jpg"
+    ],
+    "9054-eb075105-1a91-4d0e-a3dc-537ecf5751db": [
+        "val2014/COCO_val2014_000000501898.jpg",
+        "val2014/COCO_val2014_000000580847.jpg",
+        "val2014/COCO_val2014_000000284220.jpg",
+        "val2014/COCO_val2014_000000191721.jpg"
+    ],
+    "9106-3dd6ddde-5a7f-48b8-8874-bb050508c5a5": [
+        "val2014/COCO_val2014_000000322987.jpg",
+        "val2014/COCO_val2014_000000516766.jpg",
+        "val2014/COCO_val2014_000000475330.jpg",
+        "val2014/COCO_val2014_000000190700.jpg"
+    ],
+    "9160-21339a4b-d804-4a69-98eb-53b1790e7986": [
+        "val2014/COCO_val2014_000000468162.jpg",
+        "val2014/COCO_val2014_000000535312.jpg",
+        "val2014/COCO_val2014_000000391269.jpg",
+        "val2014/COCO_val2014_000000427965.jpg"
+    ],
+    "9590-a6edaaa6-da0d-4cdb-8f25-a3977f73da13": [
+        "val2014/COCO_val2014_000000142537.jpg",
+        "val2014/COCO_val2014_000000566249.jpg",
+        "val2014/COCO_val2014_000000264121.jpg",
+        "val2014/COCO_val2014_000000271177.jpg"
+    ],
+    "9743-1f2422cc-ed40-4d7a-9994-32f699a23728": [
+        "val2014/COCO_val2014_000000199442.jpg",
+        "val2014/COCO_val2014_000000483358.jpg",
+        "val2014/COCO_val2014_000000423113.jpg",
+        "val2014/COCO_val2014_000000485212.jpg"
+    ],
+    "9919-601cb97e-c811-47cf-8ce8-9410ad746e4a": [
+        "val2014/COCO_val2014_000000198625.jpg",
+        "val2014/COCO_val2014_000000134807.jpg",
+        "val2014/COCO_val2014_000000093670.jpg",
+        "val2014/COCO_val2014_000000572850.jpg"
+    ]
+}
